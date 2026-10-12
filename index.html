@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background-color: #141414; 
+            color: #ddd; 
+            text-align: center; 
+            margin: 0; 
+            padding: 10px; 
+            user-select: none; 
+        }
+        
+        /* Компактный центрированный контейнер для ПК и смартфонов */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: #222; padding: 20px; border-radius: 12px; width: 85%; max-width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
+        .modal-box input[type="text"], .modal-box input[type="password"], .modal-box select { padding: 12px; font-size: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 12px; width: 90%; background: #333; color: white; outline: none; box-sizing: border-box; }
+        .modal-box input[type="range"] { width: 100%; margin: 15px 0; }
+        .modal-box input[type="file"] { margin-bottom: 15px; color: white; width: 90%; font-size: 13px; }
+        
+        .auth-tabs { display: flex; gap: 8px; margin-bottom: 15px; background: #191919; padding: 5px; border-radius: 10px; }
+        .auth-tab { flex: 1; padding: 8px; cursor: pointer; border-radius: 8px; font-size: 14px; color: #888; font-weight: bold; transition: 0.2s; }
+        .auth-tab.active { background: #2e7d32; color: white; }
+        .auth-hint { font-size: 13px; color: #ffb74d; margin-bottom: 12px; line-height: 1.4; }
+
+        .modal-scrollable { max-height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; text-align: left; padding-right: 5px; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+        
+        .header { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 15px; background: #222; padding: 10px 15px; border-radius: 12px; align-items: center; gap: 10px; }
+        .header-left { display: flex; align-items: center; gap: 12px; flex-grow: 1; }
+        .profile-section { display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
+        .profile-section:active { opacity: 0.7; }
+        .header-name { color: #66bb6a; font-weight: bold; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background-color: #333; border: 2px solid #2e7d32; }
+        
+        .header-center { flex-grow: 1; text-align: center; }
+        .exp-title { font-size: 11px; font-weight: bold; color: #aaa; margin-bottom: 4px; }
+        .exp-bar-bg { background: #333; border-radius: 8px; height: 9px; width: 100%; max-width: 140px; margin: 0 auto; overflow: hidden; position: relative; }
+        .exp-bar-fill { background: linear-gradient(90deg, #2e7d32, #1e88e5); height: 100%; width: 0%; transition: width 0.3s; }
+        .exp-text { font-size: 9px; margin-top: 2px; color: #888; }
+        
+        .header-right { flex-grow: 0; text-align: right; }
+        .menu-btn { font-size: 22px; cursor: pointer; display: inline-block; padding-left: 8px; color: #888; }
+        
+        .plate-container { 
+            position: relative; 
+            background: white; 
+            color: black; 
+            border: 3px solid #222; 
+            border-radius: 10px; 
+            padding: 10px 15px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 30px; 
+            font-weight: bold; 
+            margin: 30px auto 15px auto; 
+            width: fit-content; 
+            font-family: 'Arial Black', sans-serif; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.7); 
+            transition: box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .plate-main { display: flex; align-items: center; padding-right: 14px; border-right: 2px solid black; }
+        .plate-region { display: flex; flex-direction: column; align-items: center; padding-left: 14px; font-size: 22px; cursor: pointer; transition: 0.2s; }
+        .plate-region:active { opacity: 0.5; }
+        .plate-region-text { font-size: 11px; display: flex; align-items: center; margin-top: 2px; }
+        .flag { width: 18px; height: 12px; background: linear-gradient(to bottom, white 33%, blue 33%, blue 66%, red 66%); margin-left: 5px; border: 1px solid #999; }
+        
+        .rarity-label { position: absolute; top: -14px; left: -10px; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: bold; text-transform: uppercase; z-index: 10; }
+        .current-price { font-size: 17px; font-weight: bold; color: #aaa; margin-bottom: 18px; min-height: 22px; }
+        
+        .mini-plate { position: relative; background: white; color: black; border: 2px solid black; border-radius: 6px; padding: 4px 8px; font-family: 'Arial Black', sans-serif; font-size: 16px; font-weight: bold; display: inline-block; margin: 8px 0; }
+        .mini-plate .rarity-label { font-size: 9px; top: -9px; left: -5px; padding: 1px 5px; }
+
+        .btn-container { margin: 15px auto; display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .btn { background: #333; color: #eee; border: none; padding: 13px 18px; font-size: 14px; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 3px 0 #1f1f1f; transition: 0.1s; text-transform: uppercase; font-weight: bold; }
+        .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+        .btn-letters { background: #2c3e50; box-shadow: 0 3px 0 #1a252f; }
+        .btn-both { background: linear-gradient(90deg, #b8860b, #d4af37); color: #111; box-shadow: 0 3px 0 #705305; }
+        .btn-save { background: #4a3b32; box-shadow: 0 3px 0 #2e241f; margin-top: 4px; }
+        .btn-green { background: #2e7d32; box-shadow: 0 3px 0 #1b5e20; }
+        .btn-blue { background: #1565c0; box-shadow: 0 3px 0 #0d47a1; }
+        .btn-close { background: #c62828; box-shadow: 0 3px 0 #8e0000; margin-top: 10px; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        .inventory, .garage, .cases-container { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left; }
+        .item { background: #292929; padding: 12px; margin: 10px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; flex-wrap: wrap; gap: 10px; position: relative; }
+        
+        /* Кнопки действий под мобильный дизайн */
+        .item button { border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; max-width: 140px; flex-grow: 0; box-shadow: 0 2px 0 rgba(0,0,0,0.3); transition: 0.15s; color: white; }
+        .item button:active { transform: translateY(2px); box-shadow: none; }
+        .item button.buy { background: linear-gradient(135deg, #2e7d32, #43a047); box-shadow: 0 2px 0 #1b5e20; }
+        .item button.sell-btn { background: linear-gradient(135deg, #c62828, #e53935); box-shadow: 0 2px 0 #8e0000; }
+        .item button.blue { background: linear-gradient(135deg, #1565c0, #1e88e5); box-shadow: 0 2px 0 #0d47a1; }
+        
+        .garage-action-row { display: flex; gap: 8px; justify-content: flex-end; width: 100%; margin-top: 4px; }
+        .garage-action-row button { max-width: 160px; flex: 1; }
+
+        .nav-tabs { display: flex; justify-content: space-around; background: #222; border-radius: 12px; padding: 5px; flex-wrap: wrap; gap: 5px; }
+        .nav-tab { padding: 11px; cursor: pointer; font-size: 14px; border-radius: 8px; flex-grow: 1; transition: 0.25s; color: #888; }
+        .nav-tab.active { background: #333; color: white; }
+        .hidden { display: none !important; }
+        
+        .cases-container { display: flex; flex-direction: column; gap: 12px; }
+        .case-box { background: #292929; border: 2px solid #3a3a3a; border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+        .case-box:active { transform: scale(0.98); }
+        .case-icon { font-size: 26px; margin-bottom: 5px; }
+        .case-box h2 { font-size: 18px; margin: 4px 0; }
+        .case-box p { margin: 0; color: #aaa; font-size: 13px; }
+        
+        .roulette-plate { font-size: 28px; background: white; color: black; padding: 14px; border-radius: 10px; border: 4px solid black; font-family: 'Arial Black', sans-serif; display: inline-block; margin: 15px 0; }
+        .roulette-btn-container { display: flex; gap: 10px; width: 100%; }
+        .roulette-btn-container .btn { flex: 1; margin-top: 0; box-sizing: border-box; } 
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Окно Авторизации и Профиля -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color: #66bb6a;" id="auth-title">Вход в аккаунт</h3>
+            
+            <div class="auth-tabs" id="auth-tabs">
+                <div class="auth-tab active" id="tab-login" onclick="window.gameApp.switchAuthMode('login')">Вход</div>
+                <div class="auth-tab" id="tab-register" onclick="window.gameApp.switchAuthMode('register')">Регистрация</div>
+            </div>
+
+            <div id="auth-hint" class="auth-hint hidden"></div>
+
+            <input type="text" id="nickname-input" placeholder="Никнейм" maxlength="15">
+            <input type="password" id="password-input" placeholder="Пароль (мин. 4 симв.)" maxlength="30">
+            
+            <div id="avatar-block" class="hidden">
+                <p style="font-size: 13px; margin: 5px 0; color: #aaa;">Аватар (необязательно):</p>
+                <input type="file" id="avatar-input" accept="image/*">
+            </div>
+
+            <button class="btn btn-green" onclick="window.gameApp.handleAuthSubmit()" id="auth-btn">Войти</button>
+            <button class="btn btn-close hidden" id="logout-btn" onclick="window.gameApp.logoutAccount()">Выйти из аккаунта</button>
+            <button class="btn btn-close hidden" id="auth-close-btn" onclick="window.gameApp.closeProfileModal()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Настройки -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0;">Настройки</h3>
+            <label>Громкость звука:</label>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" onchange="window.gameApp.updateVolume()">
+            
+            <label style="display:block; margin-top:15px; margin-bottom: 5px;">Язык:</label>
+            <select id="lang-select" onchange="window.gameApp.changeLanguage()">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+            </select>
+
+            <button class="btn btn-close" onclick="window.gameApp.closeSettings()" style="margin-top: 25px;">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Выбор номера для авто -->
+    <div id="attach-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color: #fff;">Выберите номер</h3>
+            <div id="attach-list" class="modal-scrollable"></div>
+            <button class="btn btn-close" onclick="window.gameApp.closeAttachModal()">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Предпросмотр Кейса -->
+    <div id="case-preview-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color: #fff;">Кейс</h3>
+            <div id="case-preview-list" class="modal-scrollable"></div>
+            <button class="btn btn-green" id="btn-buy-case" onclick="window.gameApp.buyCase()">Открыть</button>
+            <button class="btn btn-close" onclick="window.gameApp.closeCasePreview()">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Рулетка кейса -->
+    <div id="roulette-modal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <h3 style="margin-top:0; color: #fff;" id="roulette-status-title">Открытие кейса...</h3>
+            <div class="roulette-plate" id="roulette-display">А 000 АА</div>
+            
+            <div id="roulette-result" class="hidden">
+                <div id="roulette-rarity" class="rarity-label" style="position:relative; display:inline-block; top:0; left:0; margin-bottom:10px;">Редкость</div>
+                <div style="font-size: 20px; font-weight:bold; margin-bottom: 20px; color:#ffd700;" id="roulette-price">10 000 ₽</div>
+                
+                <div class="roulette-btn-container">
+                    <button class="btn btn-blue" id="btn-roulette-sell">Продать</button>
+                    <button class="btn btn-green" id="btn-roulette-save">В инвентарь</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Шапка -->
+    <div class="header">
+        <div class="header-left">
+            <div class="profile-section" onclick="window.gameApp.openProfileModal()" title="Профиль и аккаунт">
+                <img id="header-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar">
+                <span class="header-name" id="player-name">Игрок</span>
+            </div>
+            <div style="font-size: 14px; font-weight:bold;">💰 <span id="balance">100000</span> ₽</div>
+        </div>
+        
+        <div class="header-center">
+            <div class="exp-title">Уровень <span id="player-level">1</span></div>
+            <div class="exp-bar-bg">
+                <div class="exp-bar-fill" id="exp-bar"></div>
+            </div>
+            <div class="exp-text"><span id="current-exp">0</span> / <span id="needed-exp">100</span> XP</div>
+        </div>
+        
+        <div class="header-right">
+            <div class="menu-btn" onclick="window.gameApp.openSettings()">⋮</div>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="window.gameApp.switchTab('generator', this)">Номера</div>
+        <div class="nav-tab" onclick="window.gameApp.switchTab('inventory', this)">Инвентарь</div>
+        <div class="nav-tab" onclick="window.gameApp.switchTab('garage', this)">Гараж</div>
+        <div class="nav-tab" onclick="window.gameApp.switchTab('cases', this)">Кейсы</div>
+    </div>
+
+    <!-- Вкладка Генератор -->
+    <div id="generator" class="tab-content">
+        <div class="plate-container" id="generator-plate">
+            <div id="gen-rarity" class="rarity-label hidden">Обычный</div>
+            <div class="plate-main">
+                <span id="letter1">-</span>
+                <span id="numbers" style="font-size: 44px; margin: 0 6px;">---</span>
+                <span id="letter2">-</span>
+                <span id="letter3">-</span>
+            </div>
+            <div class="plate-region" onclick="window.gameApp.changeRegion()" title="Изменить регион">
+                <span id="region">777</span>
+                <div class="plate-region-text">RUS <div class="flag"></div></div>
+            </div>
+        </div>
+        
+        <div class="current-price" id="current-price-display">Оценка номера: --- ₽</div>
+
+        <div class="btn-container">
+            <button class="btn btn-both" id="btn-spin-all" onclick="window.gameApp.spinAll()">Крутить всё сразу (900 ₽)</button>
+            <button class="btn" id="btn-spin-num" onclick="window.gameApp.spinNumbers()">Крутить цифры (500 ₽)</button>
+            <button class="btn btn-letters" id="btn-spin-let" onclick="window.gameApp.spinLetters()">Крутить буквы (500 ₽)</button>
+            <button class="btn btn-save" id="btn-save" onclick="window.gameApp.savePlate()" disabled>Сохранить в инвентарь</button>
+        </div>
+    </div>
+
+    <!-- Вкладка Инвентарь -->
+    <div id="inventory" class="tab-content hidden">
+        <div class="inventory">
+            <div id="inventory-list"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка Гараж -->
+    <div id="garage" class="tab-content hidden">
+        <div class="garage">
+            <h3>Автосалон</h3>
+            <div id="garage-list"></div>
+            <h3>Мой гараж:</h3>
+            <div id="my-cars"></div>
+        </div>
+    </div>
+
+    <!-- Вкладка Кейсы -->
+    <div id="cases" class="tab-content hidden">
+        <div class="cases-container">
+            <div class="case-box" onclick="window.gameApp.openCasePreview('normal')">
+                <div class="case-icon">📦</div>
+                <h2>Обычный Box</h2>
+                <p>Цена: 5 000 ₽</p>
+            </div>
+            
+            <div class="case-box" style="border-color: #8a2be2;" onclick="window.gameApp.openCasePreview('super')">
+                <div class="case-icon">🎁</div>
+                <h2 style="color: #8a2be2;">Супер Box</h2>
+                <p>Цена: 50 000 ₽</p>
+            </div>
+            
+            <div class="case-box" style="border-color: #ffd700;" onclick="window.gameApp.openCasePreview('mega')">
+                <div class="case-icon">💎</div>
+                <h2 style="color: #ffd700;">Mega Box</h2>
+                <p>Цена: 200 000 ₽</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <script>
+    (function() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqB07GAN9V6fnIAREdI-0tfv3IoEfe90A",
+            authDomain: "bazanomerann.firebaseapp.com",
+            databaseURL: "https://bazanomerann-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "bazanomerann",
+            storageBucket: "bazanomerann.firebasestorage.app",
+            messagingSenderId: "617812786114",
+            appId: "1:617812786114:web:3eea847912501323e7745b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        const DEFAULT_AVATAR = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
+        const carsData = [
+            { name: "Лада Гранта", price: 250000 },
+            { name: "Lada Kalina 1 Sport", price: 400000 },
+            { name: "Lada Kalina 2 Sport", price: 650000 },
+            { name: "Lada Granta Sport 1", price: 700000 },
+            { name: "Volkswagen Polo", price: 800000 },
+            { name: "Volkswagen Golf", price: 900000 },
+            { name: "BMW M5 E60", price: 1500000 }
+        ];
+
+        let currentUser = null;
+        let balance = 100000;
+        let nickname = '';
+        let authMode = 'login';
+        let avatarData = ''; 
+        let inventory = []; 
+        let myCars = [];    
+        
+        let globalVolume = 0.5;
+        let audioCtx = null;
+        let currentLang = 'ru';
+        
+        let playerLevel = 1;
+        let playerExp = 0;
+        const expRewards = { "Обычный": 1, "Необычный": 3, "Редкий": 7, "Супер редкий": 10, "Эпический": 13, "Легендарный": 20, "Крутой": 30, "БЛАТНОЙ": 100 };
+        
+        let isSpinning = false;
+        const spinCost = 500; 
+        const spinAllCost = 900;
+        const lettersArr = ['А', 'В', 'Е', 'К', 'М', 'Н', 'О', 'Р', 'С', 'Т', 'У', 'Х'];
+        const eliteLetters = ['ААА', 'АМР', 'ВВВ', 'ВОР', 'ТТТ', 'ХХХ', 'ККК', 'ЕКХ'];
+        let currentL1 = '-', currentL2 = '-', currentL3 = '-';
+        let currentNum = '---';
+        let currentReg = '777';
+
+        let hasSpunLetSinceSave = false;
+        let hasSpunNumSinceSave = false;
+        let mustSpinBothForNextSave = false;
+        let boardHasLetters = false;
+        let boardHasNumbers = false;
+
+        let currentCaseData = null;
+        let activeCaseType = '';
+        let wonPlateObj = null;
+        let currentCarIndexForAttach = -1;
+
+        function nicknameToEmail(name) {
+            let hash = 0;
+            const str = name.trim().toLowerCase();
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            const safeName = encodeURIComponent(str).replace(/%/g, 'w').replace(/[^a-zA-Z0-9]/g, '');
+            return `u_${Math.abs(hash)}_${safeName.slice(0, 10)}@gamenomera.internal`;
+        }
+
+        function resizeImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 120;
+                    let w = img.width, h = img.height;
+                    if (w > h) { if (w > maxSize) { h *= maxSize / w; w = maxSize; } }
+                    else { if (h > maxSize) { h *= maxSize / h; h = maxSize; } }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.8));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnSell = document.getElementById('btn-roulette-sell');
+            const btnSave = document.getElementById('btn-roulette-save');
+            if (btnSell) btnSell.onclick = rouletteSell;
+            if (btnSave) btnSave.onclick = rouletteSave;
+
+            updateBalance();
+            updateExpUI();
+            renderCars();
+            renderInventory();
+            checkCanSaveButton();
+
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    db.ref('users/' + user.uid).once('value').then(snap => {
+                        const data = snap.val();
+                        if (data) {
+                            applyLoadedData(data);
+                        }
+                        closeAuthModal();
+                    }).catch(() => closeAuthModal());
+                } else {
+                    currentUser = null;
+                    openAuthModalInitial('login');
+                }
+            });
+        });
+
+        function switchAuthMode(mode) {
+            authMode = mode;
+            const tabLogin = document.getElementById('tab-login');
+            const tabReg = document.getElementById('tab-register');
+            const avatarBlock = document.getElementById('avatar-block');
+            const authBtn = document.getElementById('auth-btn');
+            const title = document.getElementById('auth-title');
+
+            if (mode === 'login') {
+                tabLogin.classList.add('active');
+                tabReg.classList.remove('active');
+                title.innerText = "Вход в аккаунт";
+                avatarBlock.classList.add('hidden');
+                authBtn.innerText = "Войти";
+            } else if (mode === 'register') {
+                tabLogin.classList.remove('active');
+                tabReg.classList.add('active');
+                title.innerText = "Регистрация";
+                avatarBlock.classList.remove('hidden');
+                authBtn.innerText = "Создать аккаунт";
+            }
+        }
+
+        function openAuthModalInitial(mode) {
+            document.getElementById('auth-close-btn').classList.add('hidden');
+            document.getElementById('logout-btn').classList.add('hidden');
+            document.getElementById('auth-tabs').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('show');
+            switchAuthMode(mode);
+        }
+
+        function openProfileModal() {
+            if (!currentUser) {
+                openAuthModalInitial('login');
+                return;
+            }
+            authMode = 'edit';
+            document.getElementById('auth-title').innerText = "Профиль игрока";
+            document.getElementById('auth-tabs').classList.add('hidden');
+            const nickInput = document.getElementById('nickname-input');
+            nickInput.value = nickname;
+            nickInput.disabled = false;
+            document.getElementById('password-input').value = "";
+            document.getElementById('password-input').placeholder = "Новый пароль (если меняете)";
+            document.getElementById('avatar-block').classList.remove('hidden');
+            document.getElementById('auth-btn').innerText = "Сохранить изменения";
+            document.getElementById('logout-btn').classList.remove('hidden');
+            document.getElementById('auth-close-btn').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('show');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('password-input').placeholder = "Пароль (мин. 4 симв.)";
+            document.getElementById('auth-modal').classList.remove('show');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('show');
+        }
+
+        function logoutAccount() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+
+        async function handleAuthSubmit() {
+            const inputName = document.getElementById('nickname-input').value.trim();
+            const inputPass = document.getElementById('password-input').value.trim();
+            const authBtn = document.getElementById('auth-btn');
+
+            if (inputName.length < 2) return alert("Никнейм должен содержать минимум 2 символа!");
+            if (authMode !== 'edit' && inputPass.length < 4) return alert("Пароль должен быть не короче 4 символов!");
+
+            const safePass = inputPass.length < 6 ? inputPass + "_0000" : inputPass;
+            authBtn.disabled = true;
+            authBtn.innerText = "Загрузка...";
+
+            const fileInput = document.getElementById('avatar-input');
+            let pickedAvatar = avatarData;
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                pickedAvatar = await new Promise(res => resizeImage(fileInput.files[0], res));
+            }
+
+            const email = nicknameToEmail(inputName);
+
+            if (authMode === 'register') {
+                auth.createUserWithEmailAndPassword(email, safePass)
+                    .then(cred => {
+                        nickname = inputName;
+                        avatarData = pickedAvatar;
+                        balance = 100000;
+                        inventory = [];
+                        myCars = [];
+                        playerLevel = 1;
+                        playerExp = 0;
+                        saveProgress();
+                        updateProfileUI();
+                        authBtn.disabled = false;
+                        closeAuthModal();
+                    })
+                    .catch(err => {
+                        authBtn.disabled = false;
+                        authBtn.innerText = "Создать аккаунт";
+                        alert(err.code === 'auth/email-already-in-use' ? "Этот никнейм уже занят! Перейдите во вкладку «Вход»." : err.message);
+                    });
+            } else if (authMode === 'login') {
+                auth.signInWithEmailAndPassword(email, safePass)
+                    .then(() => {
+                        authBtn.disabled = false;
+                        closeAuthModal();
+                    })
+                    .catch(async () => {
+                        try {
+                            const cleanKey = inputName.toLowerCase().replace(/[.#$\[\]\/]/g, '_');
+                            let snap = await db.ref('users/' + cleanKey).once('value');
+                            let oldData = snap.val();
+
+                            if (!oldData) {
+                                snap = await db.ref('users/' + inputName).once('value');
+                                oldData = snap.val();
+                            }
+
+                            if (oldData) {
+                                if (oldData.password && oldData.password !== inputPass) {
+                                    authBtn.disabled = false;
+                                    authBtn.innerText = "Войти";
+                                    return alert("Неверный пароль для этого аккаунта!");
+                                }
+
+                                const cred = await auth.createUserWithEmailAndPassword(email, safePass);
+                                currentUser = cred.user;
+                                nickname = oldData.nickname || inputName;
+                                applyLoadedData(oldData);
+                                saveProgress();
+                                updateProfileUI();
+                                authBtn.disabled = false;
+                                closeAuthModal();
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Migration error:", e);
+                        }
+
+                        authBtn.disabled = false;
+                        authBtn.innerText = "Войти";
+                        alert("Неверный никнейм или пароль!");
+                    });
+            } else if (authMode === 'edit') {
+                if (inputName.toLowerCase() !== nickname.toLowerCase()) {
+                    const checkEmail = nicknameToEmail(inputName);
+                    try {
+                        const methods = await auth.fetchSignInMethodsForEmail(checkEmail);
+                        if (methods && methods.length > 0) {
+                            authBtn.disabled = false;
+                            authBtn.innerText = "Сохранить изменения";
+                            return alert("Этот никнейм уже занят другим игроком!");
+                        }
+                    } catch(e) {}
+                    nickname = inputName;
+                }
+
+                avatarData = pickedAvatar;
+                if (inputPass.length >= 4 && currentUser) {
+                    await currentUser.updatePassword(safePass);
+                }
+                saveProgress();
+                updateProfileUI();
+                authBtn.disabled = false;
+                closeProfileModal();
+            }
+        }
+
+        function applyLoadedData(data) {
+            nickname = data.nickname || nickname;
+            balance = data.balance ?? 100000;
+            avatarData = data.avatarData || '';
+            inventory = data.inventory || [];
+            myCars = data.myCars || [];
+            playerLevel = data.playerLevel || 1;
+            playerExp = data.playerExp || 0;
+            globalVolume = data.globalVolume ?? 0.5;
+            currentLang = data.currentLang || 'ru';
+            currentReg = data.currentReg || '777';
+
+            hasSpunLetSinceSave = data.hasSpunLetSinceSave || false;
+            hasSpunNumSinceSave = data.hasSpunNumSinceSave || false;
+            mustSpinBothForNextSave = data.mustSpinBothForNextSave || false;
+            boardHasLetters = data.boardHasLetters || false;
+            boardHasNumbers = data.boardHasNumbers || false;
+
+            currentL1 = data.currentL1 || '-';
+            currentL2 = data.currentL2 || '-';
+            currentL3 = data.currentL3 || '-';
+            currentNum = data.currentNum || '---';
+
+            document.getElementById('letter1').innerText = currentL1;
+            document.getElementById('letter2').innerText = currentL2;
+            document.getElementById('letter3').innerText = currentL3;
+            document.getElementById('numbers').innerText = currentNum;
+            document.getElementById('region').innerText = currentReg;
+            document.getElementById('volume-slider').value = globalVolume;
+            document.getElementById('lang-select').value = currentLang;
+
+            updateProfileUI();
+            updateBalance();
+            updateExpUI();
+            renderInventory();
+            renderCars();
+            checkCanSaveButton();
+        }
+
+        function updateProfileUI() {
+            document.getElementById('player-name').innerText = nickname || 'Игрок';
+            document.getElementById('header-avatar').src = avatarData ? avatarData : DEFAULT_AVATAR;
+        }
+
+        function saveProgress() {
+            if (!currentUser) return;
+            const payload = {
+                nickname, balance, avatarData,
+                inventory, myCars,
+                globalVolume, currentLang, currentReg, playerLevel, playerExp,
+                hasSpunLetSinceSave, hasSpunNumSinceSave, mustSpinBothForNextSave, boardHasLetters, boardHasNumbers,
+                currentL1, currentL2, currentL3, currentNum,
+                updatedAt: Date.now()
+            };
+            db.ref('users/' + currentUser.uid).set(payload).catch(e => {
+                console.error("Save error:", e);
+            });
+        }
+
+        function getExpNeeded(lvl) { return 100 + (lvl - 1) * 10; }
+
+        function addExp(rarityText) {
+            if (playerLevel >= 777) return;
+            let amount = expRewards[rarityText] || 0;
+            playerExp += amount;
+            let needed = getExpNeeded(playerLevel);
+            while (playerExp >= needed && playerLevel < 777) {
+                playerExp -= needed;
+                playerLevel++;
+                needed = getExpNeeded(playerLevel);
+            }
+            updateExpUI();
+        }
+
+        function updateExpUI() {
+            document.getElementById('player-level').innerText = playerLevel;
+            if (playerLevel >= 777) {
+                document.getElementById('current-exp').innerText = "MAX";
+                document.getElementById('needed-exp').innerText = "MAX";
+                document.getElementById('exp-bar').style.width = "100%";
+            } else {
+                let needed = getExpNeeded(playerLevel);
+                document.getElementById('current-exp').innerText = playerExp;
+                document.getElementById('needed-exp').innerText = needed;
+                let percent = (playerExp / needed) * 100;
+                document.getElementById('exp-bar').style.width = `${percent}%`;
+            }
+        }
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function playTick() {
+            if (!audioCtx || globalVolume <= 0) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(globalVolume * 0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        function updateBalance() { document.getElementById('balance').innerText = balance.toLocaleString('ru-RU'); }
+        function randomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function getSeed(str) {
+            let seed = 0;
+            for(let i=0; i<str.length; i++) seed += str.charCodeAt(i) * (i+1);
+            return seed;
+        }
+
+        function getCalculatedPrice(l1, l2, l3, numStr, regStr) {
+            let price = 500; 
+            let lString = l1 + l2 + l3;
+            let nString = numStr;
+            let seed = getSeed(lString + nString + regStr);
+            function sRand() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            
+            let isSameLetters = (l1 === l2 && l2 === l3);
+            let isMirrorLetters = (l1 === l3 && l1 !== l2);
+            let isSameNumbers = (nString[0] === nString[1] && nString[1] === nString[2]);
+            let isMirrorNumbers = (nString[0] === nString[2] && nString[0] !== nString[1]);
+            let isEliteLetters = eliteLetters.includes(lString) || lString === 'АЕО';
+            
+            let is00X = (nString[0] === '0' && nString[1] === '0' && nString[2] !== '0');
+            let isX00 = (nString[1] === '0' && nString[2] === '0' && nString[0] !== '0');
+            let is0XX = (nString[0] === '0' && nString[1] !== '0' && nString[1] === nString[2]);
+
+            if (lString === 'АЕО' && nString === '011') return 10000000;
+            if (isEliteLetters) price += 2000000;
+            if (isSameLetters && !isEliteLetters && isSameNumbers) return Math.floor(sRand() * (1500000 - 700000 + 1)) + 700000;
+            if (isSameLetters && !isEliteLetters) price += 30000;
+            else if (isMirrorLetters && !isEliteLetters) price += 10000;
+
+            if (is00X) price += Math.floor(sRand() * (900000 - 100000 + 1)) + 100000;
+            else if (isX00) price += 150000;
+            else if (is0XX && nString !== '011') price += 80000;
+            else if (isSameNumbers) price += Math.floor(sRand() * (500000 - 50000 + 1)) + 50000; 
+            else if (isMirrorNumbers) price += 20000;
+
+            return price;
+        }
+
+        function calculatePrice() { return getCalculatedPrice(currentL1, currentL2, currentL3, currentNum, currentReg); }
+
+        function getRarity(price) {
+            if (price < 10000) return { text: "Обычный", bg: "transparent", color: "#888", border: "none", glow: "none" };
+            if (price < 30000) return { text: "Необычный", bg: "#1e90ff", color: "white", border: "1px solid black", glow: "0 0 15px rgba(30, 144, 255, 0.75)" }; 
+            if (price < 50000) return { text: "Редкий", bg: "#2e7d32", color: "white", border: "1px solid black", glow: "0 0 16px rgba(46, 125, 50, 0.8)" }; 
+            if (price < 150000) return { text: "Супер редкий", bg: "#c62828", color: "white", border: "1px solid black", glow: "0 0 20px rgba(198, 40, 40, 0.85)" }; 
+            if (price < 500000) return { text: "Эпический", bg: "#8a2be2", color: "white", border: "1px solid black", glow: "0 0 22px rgba(138, 43, 226, 0.85)" }; 
+            if (price < 1000000) return { text: "Легендарный", bg: "#ffd700", color: "black", border: "1px solid black", glow: "0 0 25px rgba(255, 215, 0, 0.9)" }; 
+            if (price < 2500000) return { text: "Крутой", bg: "#00ced1", color: "black", border: "1px solid black", glow: "0 0 25px rgba(0, 206, 209, 0.9)" }; 
+            return { text: "БЛАТНОЙ", bg: "#e0115f", color: "white", border: "1px solid black", glow: "0 0 30px rgba(224, 17, 95, 1)" }; 
+        }
+
+        function checkCanSaveButton() {
+            let canSaveNow = false;
+            if (boardHasLetters && boardHasNumbers && !isSpinning) {
+                if (mustSpinBothForNextSave) {
+                    canSaveNow = (hasSpunLetSinceSave && hasSpunNumSinceSave);
+                } else {
+                    canSaveNow = (hasSpunLetSinceSave || hasSpunNumSinceSave);
+                }
+            }
+            
+            const btnSave = document.getElementById('btn-save');
+            if (btnSave) btnSave.disabled = !canSaveNow;
+            
+            const plateBox = document.getElementById('generator-plate');
+            if (boardHasLetters && boardHasNumbers) {
+                let price = calculatePrice();
+                let rarity = getRarity(price);
+                document.getElementById('current-price-display').innerText = `Оценка номера: ${price.toLocaleString('ru-RU')} ₽`;
+                let rLabel = document.getElementById('gen-rarity');
+                rLabel.innerText = rarity.text;
+                rLabel.style.background = rarity.bg;
+                rLabel.style.color = rarity.color;
+                rLabel.style.border = rarity.border;
+                rLabel.style.boxShadow = rarity.glow !== "none" ? rarity.glow : "none";
+                rLabel.classList.remove('hidden');
+
+                if (plateBox) {
+                    plateBox.style.boxShadow = rarity.glow !== "none" ? rarity.glow : "0 6px 15px rgba(0,0,0,0.7)";
+                    plateBox.style.borderColor = rarity.glow !== "none" ? rarity.bg : "#222";
+                }
+            } else {
+                document.getElementById('current-price-display').innerText = `Оценка номера: --- ₽`;
+                document.getElementById('gen-rarity').classList.add('hidden');
+                if (plateBox) {
+                    plateBox.style.boxShadow = "0 6px 15px rgba(0,0,0,0.7)";
+                    plateBox.style.borderColor = "#222";
+                }
+            }
+        }
+
+        // Прокрутка цифр (500 ₽) по точным шансам
+        function spinNumbers() {
+            if (isSpinning) return;
+            if (balance < spinCost) return alert("Недостаточно средств!");
+            balance -= spinCost; 
+            updateBalance();
+            isSpinning = true;
+            hasSpunNumSinceSave = false; 
+            document.getElementById('gen-rarity').classList.add('hidden'); 
+            checkCanSaveButton();
+            initAudio();
+
+            const rand = Math.random() * 100;
+            let finalNum;
+
+            if (rand < 0.001) {
+                // Супер джекпот: 0.001%
+                finalNum = "011";
+            } else if (rand < 0.001 + 2.0) {
+                // 3 одинаковые: 2%
+                const digit = Math.floor(Math.random() * 10).toString();
+                finalNum = digit + digit + digit;
+            } else if (rand < 0.001 + 2.0 + 5.0) {
+                // Серия 001-009: 5%
+                const nonZero = Math.floor(Math.random() * 9 + 1).toString();
+                finalNum = "00" + nonZero;
+            } else if (rand < 0.001 + 2.0 + 5.0 + 7.099) {
+                // Серия 022-099 (кроме 011): 7.099%
+                const d = Math.floor(Math.random() * 8 + 2).toString();
+                finalNum = "0" + d + d;
+            } else if (rand < 0.001 + 2.0 + 5.0 + 7.099 + 15.0) {
+                // Зеркальные: 15% (XYX, где X != Y)
+                let d1 = Math.floor(Math.random() * 10).toString();
+                let d2 = Math.floor(Math.random() * 10).toString();
+                while (d1 === d2) d2 = Math.floor(Math.random() * 10).toString();
+                finalNum = d1 + d2 + d1;
+            } else {
+                // Обычные без ценности: 70%
+                let n;
+                while (true) {
+                    n = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+                    const isSame = (n[0] === n[1] && n[1] === n[2]);
+                    const isMirror = (n[0] === n[2] && n[0] !== n[1]);
+                    const is00X = (n[0] === '0' && n[1] === '0');
+                    const is0XX = (n[0] === '0' && n[1] === n[2]);
+                    if (!isSame && !isMirror && !is00X && !is0XX) break;
+                }
+                finalNum = n;
+            }
+
+            let ticks = 0;
+            let interval = setInterval(() => {
+                playTick();
+                if (ticks < 20) { 
+                    currentNum = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+                } else {
+                    currentNum = finalNum;
+                    clearInterval(interval);
+                    isSpinning = false;
+                    boardHasNumbers = true;
+                    hasSpunNumSinceSave = true; 
+                    checkCanSaveButton();
+                    saveProgress();
+                }
+                document.getElementById('numbers').innerText = currentNum;
+                ticks++;
+            }, 100);
+        }
+
+        // Прокрутка букв (500 ₽) по точным шансам
+        function spinLetters() {
+            if (isSpinning) return;
+            if (balance < spinCost) return alert("Недостаточно средств!");
+            balance -= spinCost; 
+            updateBalance();
+            isSpinning = true;
+            hasSpunLetSinceSave = false;
+            document.getElementById('gen-rarity').classList.add('hidden');
+            checkCanSaveButton();
+            initAudio();
+
+            const rand = Math.random() * 100;
+            let finalL1, finalL2, finalL3;
+
+            if (rand < 0.001) {
+                // Супер серия АЕО: 0.001%
+                finalL1 = 'А'; finalL2 = 'Е'; finalL3 = 'О';
+            } else if (rand < 0.001 + 1.0) {
+                // Блатные серии: 1%
+                const elite = randomItem(eliteLetters);
+                finalL1 = elite[0]; finalL2 = elite[1]; finalL3 = elite[2];
+            } else if (rand < 0.001 + 1.0 + 3.0) {
+                // 3 одинаковые не из блатных: 3%
+                const nonEliteChars = ['Е', 'О', 'Р', 'С', 'У'];
+                const ch = randomItem(nonEliteChars);
+                finalL1 = ch; finalL2 = ch; finalL3 = ch;
+            } else if (rand < 0.001 + 1.0 + 3.0 + 15.0) {
+                // Зеркальные буквы: 15% (XYX, где X != Y)
+                let c1 = randomItem(lettersArr);
+                let c2 = randomItem(lettersArr);
+                while (c1 === c2) c2 = randomItem(lettersArr);
+                finalL1 = c1; finalL2 = c2; finalL3 = c1;
+            } else {
+                // Обычные рандомные буквы: 80.999%
+                while (true) {
+                    let c1 = randomItem(lettersArr);
+                    let c2 = randomItem(lettersArr);
+                    let c3 = randomItem(lettersArr);
+                    const isSame = (c1 === c2 && c2 === c3);
+                    const isMirror = (c1 === c3);
+                    const isEl = eliteLetters.includes(c1+c2+c3) || (c1+c2+c3 === 'АЕО');
+                    if (!isSame && !isMirror && !isEl) {
+                        finalL1 = c1; finalL2 = c2; finalL3 = c3;
+                        break;
+                    }
+                }
+            }
+
+            let ticks = 0;
+            let interval = setInterval(() => {
+                playTick();
+                if (ticks < 20) { 
+                    currentL1 = randomItem(lettersArr); currentL2 = randomItem(lettersArr); currentL3 = randomItem(lettersArr);
+                } else {
+                    currentL1 = finalL1; currentL2 = finalL2; currentL3 = finalL3;
+                    clearInterval(interval);
+                    isSpinning = false;
+                    boardHasLetters = true;
+                    hasSpunLetSinceSave = true; 
+                    checkCanSaveButton();
+                    saveProgress();
+                }
+                document.getElementById('letter1').innerText = currentL1;
+                document.getElementById('letter2').innerText = currentL2;
+                document.getElementById('letter3').innerText = currentL3;
+                ticks++;
+            }, 100);
+        }
+
+        // КНОПКА «КРУТИТЬ ВСЁ СРАЗУ» (900 ₽) по выверенным шансам
+        function spinAll() {
+            if (isSpinning) return;
+            if (balance < spinAllCost) return alert("Недостаточно средств! Нужно 900 ₽");
+            balance -= spinAllCost;
+            updateBalance();
+            isSpinning = true;
+            hasSpunLetSinceSave = false;
+            hasSpunNumSinceSave = false;
+            document.getElementById('gen-rarity').classList.add('hidden');
+            checkCanSaveButton();
+            initAudio();
+
+            // Точные шансы:
+            // БЛАТНОЙ: 0.011%, Крутой: 0.099%, Легендарный: 0.5%, Эпический: 1.5%,
+            // Супер редкий: 3.0%, Редкий: 6.0%, Обычный: 88.89% (Итого 100%)
+            const rand = Math.random() * 100;
+            let targetRarity = "Обычный";
+
+            if (rand < 0.011) targetRarity = "БЛАТНОЙ";
+            else if (rand < 0.011 + 0.099) targetRarity = "Крутой";
+            else if (rand < 0.011 + 0.099 + 0.5) targetRarity = "Легендарный";
+            else if (rand < 0.011 + 0.099 + 0.5 + 1.5) targetRarity = "Эпический";
+            else if (rand < 0.011 + 0.099 + 0.5 + 1.5 + 3.0) targetRarity = "Супер редкий";
+            else if (rand < 0.011 + 0.099 + 0.5 + 1.5 + 3.0 + 6.0) targetRarity = "Редкий";
+            else targetRarity = "Обычный";
+
+            let targetCombo = forcePlate(targetRarity);
+            const parts = targetCombo.text.split(' ');
+            const finalL1 = parts[0];
+            const finalNum = parts[1];
+            const finalL2 = parts[2][0];
+            const finalL3 = parts[2][1];
+
+            let ticks = 0;
+            let interval = setInterval(() => {
+                playTick();
+                if (ticks < 20) {
+                    currentNum = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+                    currentL1 = randomItem(lettersArr);
+                    currentL2 = randomItem(lettersArr);
+                    currentL3 = randomItem(lettersArr);
+                } else {
+                    currentNum = finalNum;
+                    currentL1 = finalL1;
+                    currentL2 = finalL2;
+                    currentL3 = finalL3;
+                    clearInterval(interval);
+                    isSpinning = false;
+                    boardHasLetters = true;
+                    boardHasNumbers = true;
+                    hasSpunLetSinceSave = true;
+                    hasSpunNumSinceSave = true;
+                    checkCanSaveButton();
+                    saveProgress();
+                }
+                document.getElementById('numbers').innerText = currentNum;
+                document.getElementById('letter1').innerText = currentL1;
+                document.getElementById('letter2').innerText = currentL2;
+                document.getElementById('letter3').innerText = currentL3;
+                ticks++;
+            }, 100);
+        }
+
+        function savePlate() {
+            if (document.getElementById('btn-save').disabled) return;
+            let price = calculatePrice();
+            let rarity = getRarity(price);
+            let plateStr = `${currentL1} ${currentNum} ${currentL2}${currentL3} | ${currentReg} RUS`;
+            inventory.unshift({ text: plateStr, price: price, rarity: rarity });
+            addExp(rarity.text); 
+            mustSpinBothForNextSave = (price >= 10000);
+            hasSpunLetSinceSave = false;
+            hasSpunNumSinceSave = false;
+            checkCanSaveButton();
+            renderInventory();
+            saveProgress();
+        }
+
+        function sellPlateInternal(index) {
+            index = Number(index);
+            if (!Number.isInteger(index) || index < 0 || index >= inventory.length || !inventory[index]) {
+                return;
+            }
+            const item = inventory[index];
+            const realPrice = Number(item.price);
+            if (isNaN(realPrice) || realPrice <= 0 || realPrice > 10000000) {
+                return;
+            }
+            inventory.splice(index, 1);
+            balance += realPrice;
+            updateBalance();
+            renderInventory();
+            saveProgress();
+        }
+
+        function renderInventory() {
+            let list = document.getElementById('inventory-list');
+            if (!list) return;
+            if (inventory.length === 0) {
+                list.innerHTML = "Пусто...";
+                return;
+            }
+            list.innerHTML = '';
+            inventory.forEach((item, index) => {
+                let r = item.rarity ? item.rarity : getRarity(item.price);
+                let rarityHTML = r.text !== "Обычный" 
+                    ? `<div class="rarity-label" style="background:${r.bg}; color:${r.color}; font-size: 9px; top: -10px; left: -5px; border:${r.border}; box-shadow:${r.glow}">${r.text}</div>` 
+                    : '';
+                
+                let div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <div style="position: relative; flex-grow: 1; padding-top: 8px;">
+                        ${rarityHTML}
+                        <b style="letter-spacing: 1px; color: white; font-size: 16px;">${item.text}</b><br>
+                        <small style="color: #888;">${item.price.toLocaleString('ru-RU')} ₽</small>
+                    </div>
+                `;
+                let btn = document.createElement('button');
+                btn.className = 'sell-btn';
+                btn.innerHTML = `Продать<br>+${(item.price >= 1000000 ? (item.price/1000000).toFixed(1) + 'М' : item.price.toLocaleString('ru-RU'))}`;
+                btn.onclick = () => sellPlateInternal(index);
+                div.appendChild(btn);
+                list.appendChild(div);
+            });
+        }
+
+        function buyCarInternal(carIndex) {
+            carIndex = Number(carIndex);
+            if (!Number.isInteger(carIndex) || carIndex < 0 || carIndex >= carsData.length || !carsData[carIndex]) {
+                return;
+            }
+            const car = carsData[carIndex];
+            const realPrice = Number(car.price);
+            if (isNaN(realPrice) || realPrice <= 0) {
+                return;
+            }
+            if (balance < realPrice) return alert("Недостаточно средств!");
+            balance -= realPrice;
+            myCars.push({ name: car.name, basePrice: realPrice, plate: null });
+            updateBalance();
+            renderCars();
+            saveProgress();
+        }
+
+        function detachPlateInternal(index) {
+            index = Number(index);
+            if (!Number.isInteger(index) || index < 0 || index >= myCars.length || !myCars[index]) {
+                return;
+            }
+            let car = myCars[index];
+            if (!car.plate || !car.plate.price) return;
+            let cost = Number(car.plate.price) * 0.1;
+            if (isNaN(cost) || cost <= 0) return;
+            if (balance < cost) return alert(`Не хватает денег на снятие! Нужно ${cost.toLocaleString('ru-RU')} ₽`);
+            balance -= cost;
+            inventory.unshift(car.plate); 
+            car.plate = null; 
+            updateBalance();
+            renderCars();
+            renderInventory();
+            saveProgress(); 
+        }
+
+        function sellCarInternal(index, hasPlate) {
+            index = Number(index);
+            if (!Number.isInteger(index) || index < 0 || index >= myCars.length || !myCars[index]) {
+                return;
+            }
+            let car = myCars[index];
+            let profit = Number(car.basePrice) * 0.9; 
+            if (hasPlate && car.plate && car.plate.price) {
+                profit += Number(car.plate.price) * 0.95; 
+            }
+            if (isNaN(profit) || profit <= 0) return;
+            balance += profit;
+            myCars.splice(index, 1);
+            updateBalance();
+            renderCars();
+            saveProgress();
+        }
+
+        function renderCars() {
+            let list = document.getElementById('garage-list');
+            let myCarsDiv = document.getElementById('my-cars');
+            if (!list || !myCarsDiv) return;
+            list.innerHTML = '';
+            
+            carsData.forEach((car, index) => {
+                let div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `<div><b>${car.name}</b><br><small>${car.price.toLocaleString('ru-RU')} ₽</small></div>`;
+                let btn = document.createElement('button');
+                btn.className = 'buy';
+                btn.innerText = 'Купить';
+                btn.onclick = () => buyCarInternal(index);
+                div.appendChild(btn);
+                list.appendChild(div);
+            });
+
+            if (myCars.length === 0) {
+                myCarsDiv.innerHTML = "Пусто...";
+                return;
+            }
+            myCarsDiv.innerHTML = '';
+            myCars.forEach((car, index) => {
+                let carSellPrice = car.basePrice * 0.9;
+                let div = document.createElement('div');
+                div.className = 'item';
+                div.style.flexDirection = 'column';
+                div.style.alignItems = 'stretch';
+                
+                let title = `<div style="text-align: center; font-size: 18px; margin-bottom: 5px;"><b>${car.name}</b></div>`;
+                
+                if (car.plate) {
+                    let detachCost = car.plate.price * 0.1;
+                    let totalSellPrice = carSellPrice + (car.plate.price * 0.95);
+                    let r = car.plate.rarity ? car.plate.rarity : getRarity(car.plate.price);
+                    let rHtml = r.text !== "Обычный" ? `<div class="rarity-label" style="background:${r.bg}; color:${r.color}; border:${r.border}; box-shadow:${r.glow};">${r.text}</div>` : '';
+                    
+                    div.innerHTML = `
+                        ${title}
+                        <div style="text-align: center; margin-bottom: 10px;">
+                            <div class="mini-plate">${rHtml}${car.plate.text}</div>
+                        </div>
+                        <div class="garage-action-row">
+                            <button class="blue" id="btn-detach-${index}">Снять<br>-${detachCost.toLocaleString('ru-RU')} ₽</button>
+                            <button class="sell-btn" id="btn-sell-all-${index}">Продать всё<br>+${(totalSellPrice >= 1000000 ? (totalSellPrice/1000000).toFixed(1) + 'М' : totalSellPrice.toLocaleString('ru-RU'))}</button>
+                        </div>
+                    `;
+                    myCarsDiv.appendChild(div);
+                    div.querySelector(`#btn-detach-${index}`).onclick = () => detachPlateInternal(index);
+                    div.querySelector(`#btn-sell-all-${index}`).onclick = () => sellCarInternal(index, true);
+                } else {
+                    div.innerHTML = `
+                        ${title}
+                        <div class="garage-action-row">
+                            <button class="buy" id="btn-attach-${index}">Повесить номер</button>
+                            <button class="sell-btn" id="btn-sell-car-${index}">Продать авто<br>+${carSellPrice.toLocaleString('ru-RU')} ₽</button>
+                        </div>
+                    `;
+                    myCarsDiv.appendChild(div);
+                    div.querySelector(`#btn-attach-${index}`).onclick = () => openAttachModal(index);
+                    div.querySelector(`#btn-sell-car-${index}`).onclick = () => sellCarInternal(index, false);
+                }
+            });
+        }
+
+        function openAttachModal(carIndex) {
+            currentCarIndexForAttach = carIndex;
+            let list = document.getElementById('attach-list');
+            list.innerHTML = '';
+            if (inventory.length === 0) {
+                list.innerHTML = '<div style="color: #888; text-align: center;">У вас нет номеров в инвентаре</div>';
+            } else {
+                inventory.forEach((item, invIndex) => {
+                    let r = item.rarity ? item.rarity : getRarity(item.price);
+                    let rHtml = r.text !== "Обычный" ? `<span style="font-size: 9px; padding: 2px 4px; border-radius:3px; background:${r.bg}; color:${r.color}; margin-right: 5px;">${r.text}</span>` : '';
+                    let row = document.createElement('div');
+                    row.style.cssText = "background: #292929; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
+                    row.innerHTML = `
+                        <div>
+                            ${rHtml}<b style="color: white">${item.text}</b><br>
+                            <small>${item.price.toLocaleString('ru-RU')} ₽</small>
+                        </div>
+                    `;
+                    let selectBtn = document.createElement('button');
+                    selectBtn.className = "btn btn-green";
+                    selectBtn.style.cssText = "width: auto; padding: 8px 14px; margin: 0; border-radius: 6px;";
+                    selectBtn.innerText = "Выбрать";
+                    selectBtn.onclick = () => attachPlate(invIndex);
+                    row.appendChild(selectBtn);
+                    list.appendChild(row);
+                });
+            }
+            document.getElementById('attach-modal').classList.add('show');
+        }
+
+        function closeAttachModal() {
+            document.getElementById('attach-modal').classList.remove('show');
+            currentCarIndexForAttach = -1;
+        }
+
+        function attachPlate(invIndex) {
+            if (currentCarIndexForAttach === -1) return;
+            let car = myCars[currentCarIndexForAttach];
+            let plate = inventory[invIndex];
+            inventory.splice(invIndex, 1);
+            car.plate = plate;
+            closeAttachModal();
+            renderCars();
+            renderInventory();
+            saveProgress();
+        }
+
+        function forcePlate(targetRarity) {
+            let l1, l2, l3, num, reg = Math.floor(Math.random() * 99) + 1;
+            let attempts = 0;
+            while (attempts < 500) {
+                attempts++;
+                if (targetRarity === 'Обычный') {
+                    l1 = randomItem(['А','В','Е','К','М','Н','С','Т','У','Х']);
+                    l2 = randomItem(['А','В','Е','К','М','Н','С','Т','У','Х']);
+                    l3 = randomItem(['А','В','Е','К','М','Н','С','Т','У','Х']);
+                    if (l1 === l2 || l2 === l3 || l1 === l3) continue;
+                    num = String(Math.floor(Math.random() * 700 + 214));
+                    if (num[0] === num[1] || num[1] === num[2] || num[0] === num[2]) continue;
+                } else if (targetRarity === 'Редкий') {
+                    let letChar = randomItem(['У','М','Т','Е','С']);
+                    l1 = letChar; l2 = letChar; l3 = letChar;
+                    num = String(Math.floor(Math.random() * 700 + 214));
+                    if (num[0] === num[1] || num[1] === num[2] || num[0] === num[2]) continue;
+                } else if (targetRarity === 'Супер редкий') {
+                    l1 = 'А'; l2 = 'В'; l3 = 'С';
+                    num = '0' + (Math.floor(Math.random() * 8 + 2)) + '' + (Math.floor(Math.random() * 8 + 2));
+                    if (num[1] !== num[2]) num = '055';
+                } else if (targetRarity === 'Эпический') {
+                    l1 = 'А'; l2 = 'В'; l3 = 'С';
+                    num = String(Math.floor(Math.random() * 8 + 1)) + '00';
+                } else if (targetRarity === 'Легендарный') {
+                    let sameL = randomItem(['М', 'У', 'С']);
+                    l1 = sameL; l2 = sameL; l3 = sameL;
+                    let d = String(Math.floor(Math.random() * 9 + 1));
+                    num = d + d + d;
+                } else if (targetRarity === 'Крутой') {
+                    l1 = 'А'; l2 = 'М'; l3 = 'Р';
+                    num = '007';
+                } else if (targetRarity === 'БЛАТНОЙ') {
+                    l1 = 'А'; l2 = 'Е'; l3 = 'О';
+                    num = '011';
+                } else {
+                    l1 = randomItem(lettersArr); l2 = randomItem(lettersArr); l3 = randomItem(lettersArr);
+                    num = Math.floor(Math.random() * 899 + 100).toString();
+                }
+                let price = getCalculatedPrice(l1, l2, l3, num, reg.toString());
+                let r = getRarity(price);
+                if (r.text === targetRarity) {
+                    return { text: `${l1} ${num} ${l2}${l3} | ${reg} RUS`, price, rarity: r };
+                }
+            }
+            let price = getCalculatedPrice(l1, l2, l3, num, reg.toString());
+            return { text: `${l1} ${num} ${l2}${l3} | ${reg} RUS`, price, rarity: getRarity(price) };
+        }
+
+        const caseConfigs = {
+            'normal': { price: 5000, contents: [ {r:'Обычный', count:10}, {r:'Редкий', count:5}, {r:'Супер редкий', count:6} ], probs: [{r:'Обычный', p:0.80}, {r:'Редкий', p:0.17}, {r:'Супер редкий', p:0.03}] },
+            'super': { price: 50000, contents: [ {r:'Редкий', count:15}, {r:'Супер редкий', count:5}, {r:'Эпический', count:6} ], probs: [{r:'Редкий', p:0.80}, {r:'Супер редкий', p:0.17}, {r:'Эпический', p:0.03}] },
+            'mega': { price: 200000, contents: [ {r:'Супер редкий', count:15}, {r:'Эпический', count:4}, {r:'Легендарный', count:5} ], probs: [{r:'Супер редкий', p:0.85}, {r:'Эпический', p:0.12}, {r:'Легендарный', p:0.03}] }
+        };
+
+        function openCasePreview(type) {
+            if (isSpinning) return;
+            activeCaseType = type;
+            let config = caseConfigs[type];
+            let list = document.getElementById('case-preview-list');
+            list.innerHTML = '';
+            currentCaseData = [];
+            config.contents.forEach(ct => {
+                for(let i=0; i<ct.count; i++) currentCaseData.push(forcePlate(ct.r));
+            });
+            currentCaseData.sort((a, b) => b.price - a.price);
+            currentCaseData.forEach(item => {
+                let rHtml = item.rarity.text !== "Обычный" ? `<span style="font-size: 10px; padding: 2px 4px; border-radius:3px; background:${item.rarity.bg}; color:${item.rarity.color}; margin-right: 5px;">${item.rarity.text}</span>` : '';
+                list.innerHTML += `
+                    <div style="background: #292929; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>${rHtml}<b style="color: white">${item.text}</b></div>
+                        <small>${item.price.toLocaleString('ru-RU')} ₽</small>
+                    </div>`;
+            });
+            document.getElementById('btn-buy-case').innerText = `Открыть за ${config.price.toLocaleString('ru-RU')} ₽`;
+            document.getElementById('case-preview-modal').classList.add('show');
+        }
+
+        function closeCasePreview() { document.getElementById('case-preview-modal').classList.remove('show'); }
+
+        function buyCase() {
+            if (isSpinning) return; 
+            let config = caseConfigs[activeCaseType];
+            if (balance < config.price) return alert("Недостаточно средств!");
+            isSpinning = true;
+            balance -= config.price;
+            updateBalance();
+            saveProgress();
+            closeCasePreview();
+
+            let rand = Math.random();
+            let cumulative = 0;
+            let targetRarity = config.probs[0].r;
+            for(let prob of config.probs) {
+                cumulative += prob.p;
+                if(rand <= cumulative) { targetRarity = prob.r; break; }
+            }
+            let possibleWinners = (currentCaseData || []).filter(x => x.rarity && x.rarity.text === targetRarity);
+            wonPlateObj = possibleWinners.length > 0 ? randomItem(possibleWinners) : forcePlate(targetRarity);
+
+            document.getElementById('roulette-status-title').innerText = "Открытие кейса...";
+            document.getElementById('roulette-result').classList.add('hidden');
+            document.getElementById('roulette-modal').classList.add('show');
+            initAudio();
+
+            let ticks = 0;
+            let interval = setInterval(() => {
+                playTick();
+                if (ticks < 25) {
+                    let l1 = randomItem(lettersArr), l2 = randomItem(lettersArr), l3 = randomItem(lettersArr);
+                    let num = Math.floor(Math.random() * 899 + 100).toString();
+                    document.getElementById('roulette-display').innerText = `${l1} ${num} ${l2}${l3}`;
+                } else {
+                    clearInterval(interval);
+                    isSpinning = false;
+                    document.getElementById('roulette-status-title').innerText = "Ваш выигрыш!";
+                    document.getElementById('roulette-display').innerText = wonPlateObj.text;
+                    let rLabel = document.getElementById('roulette-rarity');
+                    rLabel.innerText = wonPlateObj.rarity.text;
+                    rLabel.style.background = wonPlateObj.rarity.bg;
+                    rLabel.style.color = wonPlateObj.rarity.color;
+                    document.getElementById('roulette-price').innerText = `${wonPlateObj.price.toLocaleString('ru-RU')} ₽`;
+                    document.getElementById('roulette-result').classList.remove('hidden');
+                }
+                ticks++;
+            }, 100);
+        }
+
+        function rouletteSell() {
+            if (!wonPlateObj || typeof wonPlateObj.price !== 'number') return;
+            const rewardPrice = Number(wonPlateObj.price);
+            wonPlateObj = null;
+            
+            if (rewardPrice > 0 && rewardPrice <= 10000000) {
+                balance += rewardPrice;
+                updateBalance();
+                saveProgress();
+            }
+            document.getElementById('roulette-result').classList.add('hidden');
+            document.getElementById('roulette-modal').classList.remove('show');
+        }
+
+        function rouletteSave() {
+            if (!wonPlateObj) return;
+            const reward = wonPlateObj;
+            wonPlateObj = null;
+            
+            inventory.unshift(reward);
+            addExp(reward.rarity.text); 
+            renderInventory();
+            saveProgress();
+            document.getElementById('roulette-result').classList.add('hidden');
+            document.getElementById('roulette-modal').classList.remove('show');
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            element.classList.add('active');
+        }
+
+        window.gameApp = {
+            switchAuthMode, handleAuthSubmit, openProfileModal, closeProfileModal, logoutAccount,
+            openSettings: () => document.getElementById('settings-modal').classList.add('show'),
+            closeSettings: () => { document.getElementById('settings-modal').classList.remove('show'); saveProgress(); },
+            updateVolume: () => { globalVolume = parseFloat(document.getElementById('volume-slider').value); },
+            changeLanguage: () => { currentLang = document.getElementById('lang-select').value; saveProgress(); },
+            spinNumbers, spinLetters, spinAll, savePlate,
+            changeRegion: () => {
+                if (isSpinning) return;
+                let newReg = prompt("Введите регион (1-3 цифры):", currentReg);
+                if (newReg && newReg.length <= 3 && !isNaN(newReg)) {
+                    currentReg = newReg;
+                    document.getElementById('region').innerText = currentReg;
+                    saveProgress();
+                }
+            },
+            openAttachModal, closeAttachModal,
+            openCasePreview, closeCasePreview, buyCase, switchTab
+        };
+    })();
+    </script>
+</body>
+</html>
