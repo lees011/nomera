@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Живой фон Aurora -->
+    <div class="aurora-bg">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+
+        <!-- Живая эмблема Night Drive без дороги справа и без "official club" -->
+        <div class="club-logo-wrapper">
+            <svg class="club-logo-svg" viewBox="0 0 320 85" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Неоновые градиенты -->
+                    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#34d399"/>
+                        <stop offset="50%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#059669"/>
+                    </linearGradient>
+
+                    <linearGradient id="headlightBeam" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+                        <stop offset="35%" stop-color="#34d399" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+                    </linearGradient>
+
+                    <linearGradient id="carPaint" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#064e3b"/>
+                        <stop offset="45%" stop-color="#10b981"/>
+                        <stop offset="100%" stop-color="#34d399"/>
+                    </linearGradient>
+
+                    <!-- Фильтр неонового свечения -->
+                    <filter id="emeraldFilter" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#10b981" flood-opacity="0.8"/>
+                    </filter>
+
+                    <!-- Маска шестиугольника-иллюминатора -->
+                    <clipPath id="emblemFrame">
+                        <polygon points="50,6 88,24 88,71 50,89 12,71 12,24"/>
+                    </clipPath>
+                </defs>
+
+                <!-- Внешний шестиугольный щит с неоновой окантовкой -->
+                <polygon points="50,6 88,24 88,71 50,89 12,71 12,24" 
+                         fill="#030712" 
+                         stroke="url(#neonGlow)" 
+                         stroke-width="2.2" 
+                         filter="url(#emeraldFilter)"/>
+
+                <!-- Внутреннее динамическое пространство сцены (Шестиугольник) -->
+                <g clip-path="url(#emblemFrame)">
+                    <!-- Ночное небо -->
+                    <rect x="0" y="0" width="100" height="95" fill="#040814"/>
+
+                    <!-- ПАРАЛЛАКС 1: Небоскрёбы ночного мегаполиса с окнами -->
+                    <g class="anim-city">
+                        <!-- Первый паттерн города -->
+                        <path d="M 0 54 L 0 32 L 8 32 L 8 20 L 18 20 L 18 36 L 26 36 L 26 24 L 38 24 L 38 40 L 46 40 L 46 16 L 56 16 L 56 30 L 68 30 L 68 22 L 80 22 L 80 54 Z" fill="#091322"/>
+                        <line x1="51" y1="8" x2="51" y2="16" stroke="#34d399" stroke-width="0.8"/> <!-- Шпиль -->
+                        <circle cx="51" cy="7" r="1" fill="#ef4444"/> <!-- Маяк -->
+                        <rect x="11" y="24" width="2" height="2" fill="#34d399" opacity="0.8"/>
+                        <rect x="14" y="28" width="2" height="2" fill="#fde047" opacity="0.7"/>
+                        <rect x="30" y="28" width="2" height="2" fill="#38bdf8" opacity="0.8"/>
+                        <rect x="34" y="32" width="2" height="2" fill="#34d399" opacity="0.6"/>
+                        <rect x="60" y="22" width="2" height="2" fill="#fde047" opacity="0.9"/>
+                        <rect x="72" y="26" width="2" height="2" fill="#38bdf8" opacity="0.7"/>
+
+                        <!-- Дублирующий паттерн для бесшовности -->
+                        <g transform="translate(80, 0)">
+                            <path d="M 0 54 L 0 32 L 8 32 L 8 20 L 18 20 L 18 36 L 26 36 L 26 24 L 38 24 L 38 40 L 46 40 L 46 16 L 56 16 L 56 30 L 68 30 L 68 22 L 80 22 L 80 54 Z" fill="#091322"/>
+                            <line x1="51" y1="8" x2="51" y2="16" stroke="#34d399" stroke-width="0.8"/>
+                            <circle cx="51" cy="7" r="1" fill="#ef4444"/>
+                            <rect x="11" y="24" width="2" height="2" fill="#34d399" opacity="0.8"/>
+                            <rect x="14" y="28" width="2" height="2" fill="#fde047" opacity="0.7"/>
+                            <rect x="30" y="28" width="2" height="2" fill="#38bdf8" opacity="0.8"/>
+                            <rect x="60" y="22" width="2" height="2" fill="#fde047" opacity="0.9"/>
+                        </g>
+                        <g transform="translate(160, 0)">
+                            <path d="M 0 54 L 0 32 L 8 32 L 8 20 L 18 20 L 18 36 L 26 36 L 26 24 L 38 24 L 38 40 L 46 40 L 80 40 L 80 54 Z" fill="#091322"/>
+                        </g>
+                    </g>
+
+                    <!-- ПАРАЛЛАКС 2: Проносящиеся фонари -->
+                    <g class="anim-lights">
+                        <line x1="20" y1="36" x2="20" y2="55" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="20" y1="36" x2="25" y2="36" stroke="#34d399" stroke-width="1.2"/>
+                        <circle cx="25" cy="37" r="1.5" fill="#fef08a"/>
+
+                        <line x1="90" y1="36" x2="90" y2="55" stroke="#1e293b" stroke-width="1"/>
+                        <line x1="90" y1="36" x2="95" y2="36" stroke="#34d399" stroke-width="1.2"/>
+                        <circle cx="95" cy="37" r="1.5" fill="#fef08a"/>
+                    </g>
+
+                    <!-- Асфальт -->
+                    <rect x="0" y="55" width="100" height="40" fill="#0a0f1d"/>
+                    <line x1="0" y1="55" x2="100" y2="55" stroke="#10b981" stroke-width="1" opacity="0.4"/>
+
+                    <!-- ПАРАЛЛАКС 3: Бегущая неоновая разметка -->
+                    <line x1="0" y1="67" x2="100" y2="67" stroke="#34d399" stroke-width="2" class="anim-road-stripes"/>
+                    <line x1="0" y1="74" x2="100" y2="74" stroke="#064e3b" stroke-width="1"/>
+
+                    <!-- Луч света фар -->
+                    <polygon points="68,54 98,46 100,66 68,58" fill="url(#headlightBeam)"/>
+
+                    <!-- Автомобиль: Спортивный седан -->
+                    <g>
+                        <!-- Вибрация кузова -->
+                        <g class="anim-car-chassis">
+                            <path d="M 22 47 L 25 45 L 27 48 Z" fill="#34d399"/>
+                            <path d="M 23 52 L 27 46 L 38 41 L 54 41 L 63 47 L 72 50 L 72 55 L 23 55 Z" fill="url(#carPaint)"/>
+                            <path d="M 39 43 L 53 43 L 60 47 L 35 47 Z" fill="#05151f" stroke="#34d399" stroke-width="0.7"/>
+                            <line x1="47" y1="43" x2="46" y2="47" stroke="#064e3b" stroke-width="1.2"/>
+                            <line x1="31" y1="50" x2="63" y2="50" stroke="#042f2e" stroke-width="1.2"/>
+                            <polygon points="69,50 72,52 68,52" fill="#ffffff" filter="url(#emeraldFilter)"/>
+                            <rect x="23" y="48" width="2" height="3" fill="#ef4444"/>
+                        </g>
+
+                        <!-- Вращающиеся колёса -->
+                        <!-- Заднее -->
+                        <g transform="translate(34, 55)">
+                            <circle cx="0" cy="0" r="5.5" fill="#020617" stroke="#34d399" stroke-width="1.2"/>
+                            <g class="anim-wheel">
+                                <line x1="-3.8" y1="0" x2="3.8" y2="0" stroke="#f8fafc" stroke-width="1"/>
+                                <line x1="0" y1="-3.8" x2="0" y2="3.8" stroke="#f8fafc" stroke-width="1"/>
+                                <line x1="-2.7" y1="-2.7" x2="2.7" y2="2.7" stroke="#94a3b8" stroke-width="0.8"/>
+                                <line x1="-2.7" y1="2.7" x2="2.7" y2="-2.7" stroke="#94a3b8" stroke-width="0.8"/>
+                            </g>
+                            <circle cx="0" cy="0" r="1.8" fill="#10b981"/>
+                        </g>
+                        <!-- Переднее -->
+                        <g transform="translate(62, 55)">
+                            <circle cx="0" cy="0" r="5.5" fill="#020617" stroke="#34d399" stroke-width="1.2"/>
+                            <g class="anim-wheel">
+                                <line x1="-3.8" y1="0" x2="3.8" y2="0" stroke="#f8fafc" stroke-width="1"/>
+                                <line x1="0" y1="-3.8" x2="0" y2="3.8" stroke="#f8fafc" stroke-width="1"/>
+                                <line x1="-2.7" y1="-2.7" x2="2.7" y2="2.7" stroke="#94a3b8" stroke-width="0.8"/>
+                                <line x1="-2.7" y1="2.7" x2="2.7" y2="-2.7" stroke="#94a3b8" stroke-width="0.8"/>
+                            </g>
+                            <circle cx="0" cy="0" r="1.8" fill="#10b981"/>
+                        </g>
+                    </g>
+                </g>
+
+                <!-- Правая часть: Только чистая надпись на ровном темном фоне -->
+                <text x="106" y="38" fill="#ffffff" font-family="'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="18" letter-spacing="2">PREMIUM</text>
+                <text x="106" y="56" fill="#34d399" font-family="'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="10.5" letter-spacing="4">AUTO CLUB</text>
+            </svg>
+        </div>
+
+        <!-- Модальное окно авторизации -->
+        <div id="auth-modal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="auth-header-badge">PREMIUM AUTO CLUB</div>
+                <h2 style="margin: 4px 0 16px 0; color: #f3f4f6; font-size: 22px;" id="auth-title">Вход в аккаунт</h2>
+                
+                <div class="auth-tabs" id="auth-tabs">
+                    <div class="auth-tab active" id="tab-login" onclick="window.gameApp.switchAuthMode('login')">Вход</div>
+                    <div class="auth-tab" id="tab-register" onclick="window.gameApp.switchAuthMode('register')">Регистрация</div>
+                </div>
+
+                <div id="auth-hint" class="auth-hint hidden"></div>
+
+                <input type="text" id="nickname-input" placeholder="Никнейм игрока" maxlength="15">
+                <input type="password" id="password-input" placeholder="Пароль (мин. 4 символа)" maxlength="30">
+                
+                <div id="avatar-block" class="hidden">
+                    <p style="font-size: 13px; margin: 8px 0 4px 0; color: var(--text-sub); text-align: left;" id="avatar-label">Аватар профиля:</p>
+                    <input type="file" id="avatar-input" accept="image/*">
+                </div>
+
+                <button class="btn btn-green" onclick="window.gameApp.handleAuthSubmit()" id="auth-btn" style="margin-top: 8px;">Войти в игру</button>
+                <button class="btn btn-close hidden" id="logout-btn" onclick="window.gameApp.logoutAccount()">Выйти из аккаунта</button>
+                <button class="btn btn-close hidden" id="auth-close-btn" onclick="window.gameApp.closeProfileModal()">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settings-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeSettings()">
+            <div class="modal-box">
+                <h3 style="margin-top:0;" id="settings-title">Настройки</h3>
+                <label style="color: var(--text-sub); font-size: 14px;" id="lbl-volume">Громкость звука:</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" onchange="window.gameApp.updateVolume()">
+                
+                <label style="display:block; margin-top:15px; margin-bottom: 5px; color: var(--text-sub); font-size: 14px;" id="lbl-lang">Язык интерфейса:</label>
+                <select id="lang-select" onchange="window.gameApp.changeLanguage()">
+                    <option value="ru">Русский (RU)</option>
+                    <option value="en">English (EN)</option>
+                </select>
+
+                <button class="btn btn-close" onclick="window.gameApp.closeSettings()" style="margin-top: 25px;" id="btn-close-settings">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- ТТХ авто -->
+        <div id="car-spec-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeCarSpecModal()">
+            <div class="modal-box" style="text-align: center;">
+                <div id="spec-car-preview" style="display: flex; justify-content: center; margin-bottom: 12px;"></div>
+                <h3 id="spec-car-title" style="margin: 0; color: #fff; font-size: 20px;">Автомобиль</h3>
+                <p id="spec-car-price" style="margin: 4px 0 14px 0; color: #34d399; font-weight: 800; font-size: 16px;">0 ₽</p>
+                
+                <div class="spec-grid">
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-hp">Мощность</div>
+                        <div class="spec-val" id="spec-hp">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-accel">Разгон 0-100</div>
+                        <div class="spec-val" id="spec-accel">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-speed">Макс. скорость</div>
+                        <div class="spec-val" id="spec-speed">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-torque">Крутящий момент</div>
+                        <div class="spec-val" id="spec-torque">-</div>
+                    </div>
+                    <div class="spec-item full-width">
+                        <div class="spec-label" id="lbl-spec-drive">Тип привода</div>
+                        <div class="spec-val" id="spec-drivetrain">-</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-close" onclick="window.gameApp.closeCarSpecModal()" id="btn-close-spec">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Привязка номера -->
+        <div id="attach-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeAttachModal()">
+            <div class="modal-box">
+                <h3 style="margin-top:0; color: #fff;" id="attach-title">Выберите номер</h3>
+                <div id="attach-list" class="modal-scrollable"></div>
+                <button class="btn btn-close" onclick="window.gameApp.closeAttachModal()" id="btn-close-attach">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Предпросмотр Кейса -->
+        <div id="case-preview-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeCasePreview()">
+            <div class="modal-box">
+                <h3 style="margin-top:0; color: #fff;" id="case-preview-title">Кейс</h3>
+                <div id="case-preview-list" class="modal-scrollable"></div>
+                <button class="btn btn-green" id="btn-buy-case" onclick="window.gameApp.buyCase()">Открыть</button>
+                <button class="btn btn-close" onclick="window.gameApp.closeCasePreview()" id="btn-close-case">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Рулетка -->
+        <div id="roulette-modal" class="modal-overlay">
+            <div class="modal-box" style="text-align: center;">
+                <h3 style="margin-top:0; color: #fff;" id="roulette-status-title">Открытие кейса...</h3>
+                <div class="roulette-plate" id="roulette-display">А 000 АА</div>
+                
+                <div id="roulette-result" class="hidden">
+                    <div id="roulette-rarity" class="rarity-label" style="position:relative; display:inline-block; top:0; left:0; margin-bottom:10px;">Редкость</div>
+                    <div style="font-size: 22px; font-weight:bold; margin-bottom: 20px; color:#ffd700;" id="roulette-price">10 000 ₽</div>
+                    
+                    <div class="roulette-btn-container">
+                        <button class="btn btn-blue" id="btn-roulette-sell">Продать</button>
+                        <button class="btn btn-green" id="btn-roulette-save">В инвентарь</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Шапка -->
+        <div class="header">
+            <div class="header-left">
+                <div class="profile-section" onclick="window.gameApp.openProfileModal()" title="Профиль и аккаунт">
+                    <img id="header-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar">
+                    <span class="header-name" id="player-name">Игрок</span>
+                </div>
+                <div style="font-size: 14px; font-weight:800;">💰 <span id="balance">100 000</span> ₽</div>
+            </div>
+            
+            <div class="header-center">
+                <div class="exp-title"><span id="lbl-level">Уровень</span> <span id="player-level">1</span></div>
+                <div class="exp-bar-bg">
+                    <div class="exp-bar-fill" id="exp-bar"></div>
+                </div>
+                <div class="exp-text"><span id="current-exp">0</span> / <span id="needed-exp">100</span> XP</div>
+            </div>
+            
+            <div class="header-right">
+                <div class="menu-btn" onclick="window.gameApp.openSettings()">⋮</div>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" id="tab-nav-plates" onclick="window.gameApp.switchTab('generator', this)">Номера</div>
+            <div class="nav-tab" id="tab-nav-inv" onclick="window.gameApp.switchTab('inventory', this)">Инвентарь</div>
+            <div class="nav-tab" id="tab-nav-garage" onclick="window.gameApp.switchTab('garage', this)">Гараж</div>
+            <div class="nav-tab" id="tab-nav-cases" onclick="window.gameApp.switchTab('cases', this)">Кейсы</div>
+        </div>
+
+        <!-- Генератор -->
+        <div id="generator" class="tab-content">
+            <div class="plate-container" id="generator-plate">
+                <div id="gen-rarity" class="rarity-label hidden">Обычный</div>
+                <div class="plate-main">
+                    <span class="plate-slot-letter" id="letter1">-</span>
+                    <span class="plate-slot-numbers" id="numbers">---</span>
+                    <span class="plate-slot-letter" id="letter2">-</span>
+                    <span class="plate-slot-letter" id="letter3">-</span>
+                </div>
+                <div class="plate-region" onclick="window.gameApp.changeRegion()" title="Изменить регион">
+                    <span id="region">777</span>
+                    <div class="plate-region-text">RUS <div class="flag"></div></div>
+                </div>
+            </div>
+            
+            <div class="current-price" id="current-price-display">Оценка номера: --- ₽</div>
+
+            <!-- Объемные кнопки со смайликами в начале -->
+            <div class="btn-container">
+                <button class="btn btn-both" id="btn-spin-all" onclick="window.gameApp.spinAll()">
+                    <span class="btn-icon-emoji">🎰</span>
+                    <span id="txt-spin-all">Крутить всё сразу (900 ₽)</span>
+                </button>
+                
+                <button class="btn btn-numbers" id="btn-spin-num" onclick="window.gameApp.spinNumbers()">
+                    <span class="btn-icon-emoji">🔢</span>
+                    <span id="txt-spin-num">Крутить цифры (500 ₽)</span>
+                </button>
+                
+                <button class="btn btn-letters" id="btn-spin-let" onclick="window.gameApp.spinLetters()">
+                    <span class="btn-icon-emoji">🔤</span>
+                    <span id="txt-spin-let">Крутить буквы (500 ₽)</span>
+                </button>
+                
+                <button class="btn btn-save" id="btn-save" onclick="window.gameApp.savePlate()" disabled>
+                    <span class="btn-icon-emoji">💾</span>
+                    <span id="txt-save">Сохранить в инвентарь</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Инвентарь -->
+        <div id="inventory" class="tab-content hidden">
+            <div class="inventory">
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+
+        <!-- Гараж -->
+        <div id="garage" class="tab-content hidden">
+            <div class="garage">
+                <h3 style="margin-top:0;" id="garage-dealership-title">Автосалон</h3>
+                <div id="garage-list"></div>
+                <h3 style="margin-top:24px;" id="garage-my-cars-title">Мой гараж:</h3>
+                <div id="my-cars"></div>
+            </div>
+        </div>
+
+        <!-- Кейсы -->
+        <div id="cases" class="tab-content hidden">
+            <div class="cases-container">
+                <div class="case-box" onclick="window.gameApp.openCasePreview('normal')">
+                    <div class="case-icon">📦</div>
+                    <h2 id="case-name-normal">Обычный Box</h2>
+                    <p id="case-price-normal">Цена: 5 000 ₽</p>
+                </div>
+                
+                <div class="case-box" style="border-color: #8b5cf6;" onclick="window.gameApp.openCasePreview('super')">
+                    <div class="case-icon">🎁</div>
+                    <h2 style="color: #a78bfa;" id="case-name-super">Супер Box</h2>
+                    <p id="case-price-super">Цена: 50 000 ₽</p>
+                </div>
+                
+                <div class="case-box" style="border-color: #f59e0b;" onclick="window.gameApp.openCasePreview('mega')">
+                    <div class="case-icon">💎</div>
+                    <h2 style="color: #fbbf24;" id="case-name-mega">Mega Box</h2>
+                    <p id="case-price-mega">Цена: 200 000 ₽</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <!-- Скрипт игры -->
+    <script src="app.js"></script>
+</body>
+</html>
