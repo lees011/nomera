@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Живой фон Aurora -->
+    <div class="aurora-bg">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+
+        <!-- Модальное окно авторизации и профиля -->
+        <div id="auth-modal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="auth-header-badge">PREMIUM AUTO CLUB</div>
+                <h2 style="margin: 4px 0 16px 0; color: #f3f4f6; font-size: 22px;" id="auth-title">Вход в аккаунт</h2>
+                
+                <div class="auth-tabs" id="auth-tabs">
+                    <div class="auth-tab active" id="tab-login" onclick="window.gameApp.switchAuthMode('login')">Вход</div>
+                    <div class="auth-tab" id="tab-register" onclick="window.gameApp.switchAuthMode('register')">Регистрация</div>
+                </div>
+
+                <div id="auth-hint" class="auth-hint hidden"></div>
+
+                <input type="text" id="nickname-input" placeholder="Никнейм игрока" maxlength="15">
+                <input type="password" id="password-input" placeholder="Пароль (мин. 4 символа)" maxlength="30">
+                
+                <div id="avatar-block" class="hidden">
+                    <p style="font-size: 13px; margin: 8px 0 4px 0; color: var(--text-sub); text-align: left;" id="avatar-label">Аватар профиля:</p>
+                    <input type="file" id="avatar-input" accept="image/*">
+                </div>
+
+                <button class="btn btn-green" onclick="window.gameApp.handleAuthSubmit()" id="auth-btn" style="margin-top: 8px;">Войти в игру</button>
+                <button class="btn btn-close hidden" id="logout-btn" onclick="window.gameApp.logoutAccount()">Выйти из аккаунта</button>
+                <button class="btn btn-close hidden" id="auth-close-btn" onclick="window.gameApp.closeProfileModal()">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settings-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeSettings()">
+            <div class="modal-box">
+                <h3 style="margin-top:0;" id="settings-title">Настройки</h3>
+                <label style="color: var(--text-sub); font-size: 14px;" id="lbl-volume">Громкость звука:</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5" onchange="window.gameApp.updateVolume()">
+                
+                <label style="display:block; margin-top:15px; margin-bottom: 5px; color: var(--text-sub); font-size: 14px;" id="lbl-lang">Язык интерфейса:</label>
+                <select id="lang-select" onchange="window.gameApp.changeLanguage()">
+                    <option value="ru">Русский (RU)</option>
+                    <option value="en">English (EN)</option>
+                </select>
+
+                <button class="btn btn-close" onclick="window.gameApp.closeSettings()" style="margin-top: 25px;" id="btn-close-settings">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно характеристик (ТТХ) авто -->
+        <div id="car-spec-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeCarSpecModal()">
+            <div class="modal-box" style="text-align: center;">
+                <div id="spec-car-preview" style="display: flex; justify-content: center; margin-bottom: 12px;"></div>
+                <h3 id="spec-car-title" style="margin: 0; color: #fff; font-size: 20px;">Автомобиль</h3>
+                <p id="spec-car-price" style="margin: 4px 0 14px 0; color: #34d399; font-weight: 800; font-size: 16px;">0 ₽</p>
+                
+                <div class="spec-grid">
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-hp">Мощность</div>
+                        <div class="spec-val" id="spec-hp">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-accel">Разгон 0-100</div>
+                        <div class="spec-val" id="spec-accel">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-speed">Макс. скорость</div>
+                        <div class="spec-val" id="spec-speed">-</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label" id="lbl-spec-torque">Крутящий момент</div>
+                        <div class="spec-val" id="spec-torque">-</div>
+                    </div>
+                    <div class="spec-item full-width">
+                        <div class="spec-label" id="lbl-spec-drive">Тип привода</div>
+                        <div class="spec-val" id="spec-drivetrain">-</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-close" onclick="window.gameApp.closeCarSpecModal()" id="btn-close-spec">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Выбор номера для авто -->
+        <div id="attach-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeAttachModal()">
+            <div class="modal-box">
+                <h3 style="margin-top:0; color: #fff;" id="attach-title">Выберите номер</h3>
+                <div id="attach-list" class="modal-scrollable"></div>
+                <button class="btn btn-close" onclick="window.gameApp.closeAttachModal()" id="btn-close-attach">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Предпросмотр Кейса -->
+        <div id="case-preview-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeCasePreview()">
+            <div class="modal-box">
+                <h3 style="margin-top:0; color: #fff;" id="case-preview-title">Кейс</h3>
+                <div id="case-preview-list" class="modal-scrollable"></div>
+                <button class="btn btn-green" id="btn-buy-case" onclick="window.gameApp.buyCase()">Открыть</button>
+                <button class="btn btn-close" onclick="window.gameApp.closeCasePreview()" id="btn-close-case">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- Рулетка кейса -->
+        <div id="roulette-modal" class="modal-overlay">
+            <div class="modal-box" style="text-align: center;">
+                <h3 style="margin-top:0; color: #fff;" id="roulette-status-title">Открытие кейса...</h3>
+                <div class="roulette-plate" id="roulette-display">А 000 АА</div>
+                
+                <div id="roulette-result" class="hidden">
+                    <div id="roulette-rarity" class="rarity-label" style="position:relative; display:inline-block; top:0; left:0; margin-bottom:10px;">Редкость</div>
+                    <div style="font-size: 22px; font-weight:bold; margin-bottom: 20px; color:#ffd700;" id="roulette-price">10 000 ₽</div>
+                    
+                    <div class="roulette-btn-container">
+                        <button class="btn btn-blue" id="btn-roulette-sell">Продать</button>
+                        <button class="btn btn-green" id="btn-roulette-save">В инвентарь</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Шапка игрока -->
+        <div class="header">
+            <div class="header-left">
+                <div class="profile-section" onclick="window.gameApp.openProfileModal()" title="Профиль и аккаунт">
+                    <img id="header-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar">
+                    <span class="header-name" id="player-name">Игрок</span>
+                </div>
+                <div style="font-size: 14px; font-weight:800;">💰 <span id="balance">100 000</span> ₽</div>
+            </div>
+            
+            <div class="header-center">
+                <div class="exp-title"><span id="lbl-level">Уровень</span> <span id="player-level">1</span></div>
+                <div class="exp-bar-bg">
+                    <div class="exp-bar-fill" id="exp-bar"></div>
+                </div>
+                <div class="exp-text"><span id="current-exp">0</span> / <span id="needed-exp">100</span> XP</div>
+            </div>
+            
+            <div class="header-right">
+                <div class="menu-btn" onclick="window.gameApp.openSettings()">⋮</div>
+            </div>
+        </div>
+
+        <!-- Вкладки навигации -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" id="tab-nav-plates" onclick="window.gameApp.switchTab('generator', this)">Номера</div>
+            <div class="nav-tab" id="tab-nav-inv" onclick="window.gameApp.switchTab('inventory', this)">Инвентарь</div>
+            <div class="nav-tab" id="tab-nav-garage" onclick="window.gameApp.switchTab('garage', this)">Гараж</div>
+            <div class="nav-tab" id="tab-nav-cases" onclick="window.gameApp.switchTab('cases', this)">Кейсы</div>
+        </div>
+
+        <!-- Вкладка Генератор -->
+        <div id="generator" class="tab-content">
+            <div class="plate-container" id="generator-plate">
+                <div id="gen-rarity" class="rarity-label hidden">Обычный</div>
+                <div class="plate-main">
+                    <span class="plate-slot-letter" id="letter1">-</span>
+                    <span class="plate-slot-numbers" id="numbers">---</span>
+                    <span class="plate-slot-letter" id="letter2">-</span>
+                    <span class="plate-slot-letter" id="letter3">-</span>
+                </div>
+                <div class="plate-region" onclick="window.gameApp.changeRegion()" title="Изменить регион">
+                    <span id="region">777</span>
+                    <div class="plate-region-text">RUS <div class="flag"></div></div>
+                </div>
+            </div>
+            
+            <div class="current-price" id="current-price-display">Оценка номера: --- ₽</div>
+
+            <div class="btn-container">
+                <!-- Кнопка «Крутить всё сразу» с векторной иконкой -->
+                <button class="btn btn-both" id="btn-spin-all" onclick="window.gameApp.spinAll()">
+                    <svg class="btn-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                    <span id="txt-spin-all">Крутить всё сразу (900 ₽)</span>
+                </button>
+                
+                <!-- Кнопка «Крутить цифры» с векторной иконкой -->
+                <button class="btn btn-numbers" id="btn-spin-num" onclick="window.gameApp.spinNumbers()">
+                    <svg class="btn-icon" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14h-2v-4H8v-2h2V9h2v2h2v2h-2v4z"/></svg>
+                    <span id="txt-spin-num">Крутить цифры (500 ₽)</span>
+                </button>
+                
+                <!-- Кнопка «Крутить буквы» с векторной иконкой -->
+                <button class="btn btn-letters" id="btn-spin-let" onclick="window.gameApp.spinLetters()">
+                    <svg class="btn-icon" viewBox="0 0 24 24"><path d="M9.93 13.5h4.14L12 7.98zM20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-4.05 16.5l-1.14-3H9.17l-1.12 3H5.96l5.11-13h1.86l5.11 13h-2.09z"/></svg>
+                    <span id="txt-spin-let">Крутить буквы (500 ₽)</span>
+                </button>
+                
+                <!-- Кнопка «Сохранить» с векторной иконкой -->
+                <button class="btn btn-save" id="btn-save" onclick="window.gameApp.savePlate()" disabled>
+                    <svg class="btn-icon" viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+                    <span id="txt-save">Сохранить в инвентарь</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Вкладка Инвентарь -->
+        <div id="inventory" class="tab-content hidden">
+            <div class="inventory">
+                <div id="inventory-list"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка Гараж -->
+        <div id="garage" class="tab-content hidden">
+            <div class="garage">
+                <h3 style="margin-top:0;" id="garage-dealership-title">Автосалон</h3>
+                <div id="garage-list"></div>
+                <h3 style="margin-top:24px;" id="garage-my-cars-title">Мой гараж:</h3>
+                <div id="my-cars"></div>
+            </div>
+        </div>
+
+        <!-- Вкладка Кейсы -->
+        <div id="cases" class="tab-content hidden">
+            <div class="cases-container">
+                <div class="case-box" onclick="window.gameApp.openCasePreview('normal')">
+                    <div class="case-icon">📦</div>
+                    <h2 id="case-name-normal">Обычный Box</h2>
+                    <p id="case-price-normal">Цена: 5 000 ₽</p>
+                </div>
+                
+                <div class="case-box" style="border-color: #8b5cf6;" onclick="window.gameApp.openCasePreview('super')">
+                    <div class="case-icon">🎁</div>
+                    <h2 style="color: #a78bfa;" id="case-name-super">Супер Box</h2>
+                    <p id="case-price-super">Цена: 50 000 ₽</p>
+                </div>
+                
+                <div class="case-box" style="border-color: #f59e0b;" onclick="window.gameApp.openCasePreview('mega')">
+                    <div class="case-icon">💎</div>
+                    <h2 style="color: #fbbf24;" id="case-name-mega">Mega Box</h2>
+                    <p id="case-price-mega">Цена: 200 000 ₽</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+    <!-- Скрипт игры -->
+    <script src="app.js"></script>
+</body>
+</html>
