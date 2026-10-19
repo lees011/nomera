@@ -5,7 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NN</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2.6">
+    <style>
+        /* Базовые стили бокового меню, чтобы исключить показ нестилизованного текста */
+        .side-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(6px);
+            z-index: 2500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .side-menu-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 290px;
+            max-width: 86vw;
+            height: 100vh;
+            background: #080c16;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 2600;
+            transform: translateX(-100%);
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 14px 0 35px rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .side-menu.show {
+            transform: translateX(0);
+        }
+
+        .side-menu-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 16px 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .side-menu-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .side-menu-close {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #94a3b8;
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+        }
+        .side-menu-close:hover { color: #fff; border-color: #ef4444; }
+
+        .side-menu-items {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .side-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .side-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+        }
+        .side-item.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 78, 59, 0.35));
+            border-color: rgba(52, 211, 153, 0.45);
+            color: #34d399;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        }
+        .side-item-icon {
+            font-size: 19px;
+            line-height: 1;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .side-item-text {
+            font-size: 14.5px;
+            font-weight: 800;
+        }
+        .side-menu-footer {
+            padding: 12px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .side-menu-burger-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            cursor: pointer;
+            transition: 0.15s;
+            flex-shrink: 0;
+        }
+        .side-menu-burger-btn:hover {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: rgba(52, 211, 153, 0.4);
+            color: #34d399;
+        }
+        .side-menu-burger-btn:active {
+            transform: scale(0.92);
+        }
+    </style>
 </head>
 <body>
 
@@ -35,70 +181,43 @@
         <nav class="side-menu-items">
             <div class="side-item active" id="menu-item-generator" onclick="window.gameApp.switchTab('generator')">
                 <span class="side-item-icon">🎰</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-plates">Номера</span>
-                    <span class="side-item-sub">Генератор гос. знаков</span>
-                </div>
+                <span class="side-item-text" id="side-txt-plates">Номера</span>
             </div>
             <div class="side-item" id="menu-item-inventory" onclick="window.gameApp.switchTab('inventory')">
                 <span class="side-item-icon">🎒</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-inv">Инвентарь</span>
-                    <span class="side-item-sub">Коллекция номеров</span>
-                </div>
+                <span class="side-item-text" id="side-txt-inv">Инвентарь</span>
             </div>
             <div class="side-item" id="menu-item-mygarage" onclick="window.gameApp.switchTab('mygarage')">
                 <span class="side-item-icon">🏎️</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-mygarage">Мой гараж</span>
-                    <span class="side-item-sub">Автопарк и налоги</span>
-                </div>
+                <span class="side-item-text" id="side-txt-mygarage">Мой гараж</span>
             </div>
             <div class="side-item" id="menu-item-racing" onclick="window.gameApp.switchTab('racing')">
                 <span class="side-item-icon">🏁</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-racing">Гонки 402м</span>
-                    <span class="side-item-sub">Драг-рейсинг и призы</span>
-                </div>
+                <span class="side-item-text" id="side-txt-racing">Гонки 402м</span>
             </div>
             <div class="side-item" id="menu-item-dealership" onclick="window.gameApp.switchTab('dealership')">
                 <span class="side-item-icon">🏪</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-dealership">Автосалон</span>
-                    <span class="side-item-sub">Покупка суперкаров</span>
-                </div>
+                <span class="side-item-text" id="side-txt-dealership">Автосалон</span>
             </div>
             <div class="side-item" id="menu-item-cases" onclick="window.gameApp.switchTab('cases')">
                 <span class="side-item-icon">📦</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-cases">Кейсы</span>
-                    <span class="side-item-sub">Лутбоксы с дропом</span>
-                </div>
+                <span class="side-item-text" id="side-txt-cases">Кейсы</span>
             </div>
             <div class="side-item" id="menu-item-market" onclick="window.gameApp.switchTab('market')">
                 <span class="side-item-icon">🌐</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-market">Онлайн-рынок</span>
-                    <span class="side-item-sub">P2P торги в реальном времени</span>
-                </div>
+                <span class="side-item-text" id="side-txt-market">Онлайн-рынок</span>
             </div>
             <div class="side-item" id="menu-item-leaders" onclick="window.gameApp.switchTab('leaders')">
                 <span class="side-item-icon">🏆</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-leaders">Рейтинг игроков</span>
-                    <span class="side-item-sub">Топ богачей клуба</span>
-                </div>
+                <span class="side-item-text" id="side-txt-leaders">Рейтинг игроков</span>
             </div>
             <div class="side-item" id="menu-item-quests" onclick="window.gameApp.switchTab('quests')">
                 <span class="side-item-icon">🎯</span>
-                <div class="side-item-info">
-                    <span class="side-item-text" id="side-txt-quests">Квесты клуба</span>
-                    <span class="side-item-sub">Задания и награды</span>
-                </div>
+                <span class="side-item-text" id="side-txt-quests">Квесты клуба</span>
             </div>
         </nav>
         <div class="side-menu-footer">
-            <div style="font-size: 11px; color: var(--text-sub);">NN Auto Club • Premium Edition</div>
+            <div>NN Auto Club • Premium Edition</div>
         </div>
     </aside>
 
@@ -262,17 +381,6 @@
                     <div id="daily-dot" class="badge-dot hidden"></div>
                 </div>
                 <div class="icon-top-btn" onclick="window.gameApp.openSettings()" title="Настройки">⚙️</div>
-            </div>
-        </div>
-
-        <!-- Навигация: плашка текущего раздела с кнопкой бокового меню -->
-        <div class="nav-bar-trigger" onclick="window.gameApp.toggleSideMenu()" title="Открыть боковое меню">
-            <div class="nav-bar-current">
-                <span id="active-tab-icon">🎰</span>
-                <span id="active-tab-label">Номера</span>
-            </div>
-            <div class="nav-bar-menu-pill">
-                <span>☰ Меню разделов (9)</span>
             </div>
         </div>
 
@@ -703,6 +811,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
     <!-- Скрипт игры -->
-    <script src="app.js"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 </html>
