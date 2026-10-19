@@ -19,6 +19,89 @@
         <div class="aurora-blob blob-3"></div>
     </div>
 
+    <!-- Оверлей и выдвижное боковое меню (для ПК и телефонов) -->
+    <div id="side-menu-overlay" class="side-menu-overlay" onclick="window.gameApp.closeSideMenu()"></div>
+    <aside id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <div class="side-menu-brand">
+                <span style="font-size: 24px;">🏎️</span>
+                <div>
+                    <b style="color: #fff; font-size: 15px; letter-spacing: 1px;">NN AUTO CLUB</b>
+                    <small style="color: #34d399; display:block; font-size: 10px; font-weight:800; letter-spacing:0.5px;">МЕНЮ РАЗДЕЛОВ</small>
+                </div>
+            </div>
+            <button class="side-menu-close" onclick="window.gameApp.closeSideMenu()" title="Закрыть меню">✕</button>
+        </div>
+        <nav class="side-menu-items">
+            <div class="side-item active" id="menu-item-generator" onclick="window.gameApp.switchTab('generator')">
+                <span class="side-item-icon">🎰</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-plates">Номера</span>
+                    <span class="side-item-sub">Генератор гос. знаков</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-inventory" onclick="window.gameApp.switchTab('inventory')">
+                <span class="side-item-icon">🎒</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-inv">Инвентарь</span>
+                    <span class="side-item-sub">Коллекция номеров</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-mygarage" onclick="window.gameApp.switchTab('mygarage')">
+                <span class="side-item-icon">🏎️</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-mygarage">Мой гараж</span>
+                    <span class="side-item-sub">Автопарк и налоги</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-racing" onclick="window.gameApp.switchTab('racing')">
+                <span class="side-item-icon">🏁</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-racing">Гонки 402м</span>
+                    <span class="side-item-sub">Драг-рейсинг и призы</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-dealership" onclick="window.gameApp.switchTab('dealership')">
+                <span class="side-item-icon">🏪</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-dealership">Автосалон</span>
+                    <span class="side-item-sub">Покупка суперкаров</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-cases" onclick="window.gameApp.switchTab('cases')">
+                <span class="side-item-icon">📦</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-cases">Кейсы</span>
+                    <span class="side-item-sub">Лутбоксы с дропом</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-market" onclick="window.gameApp.switchTab('market')">
+                <span class="side-item-icon">🌐</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-market">Онлайн-рынок</span>
+                    <span class="side-item-sub">P2P торги в реальном времени</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-leaders" onclick="window.gameApp.switchTab('leaders')">
+                <span class="side-item-icon">🏆</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-leaders">Рейтинг игроков</span>
+                    <span class="side-item-sub">Топ богачей клуба</span>
+                </div>
+            </div>
+            <div class="side-item" id="menu-item-quests" onclick="window.gameApp.switchTab('quests')">
+                <span class="side-item-icon">🎯</span>
+                <div class="side-item-info">
+                    <span class="side-item-text" id="side-txt-quests">Квесты клуба</span>
+                    <span class="side-item-sub">Задания и награды</span>
+                </div>
+            </div>
+        </nav>
+        <div class="side-menu-footer">
+            <div style="font-size: 11px; color: var(--text-sub);">NN Auto Club • Premium Edition</div>
+        </div>
+    </aside>
+
     <div class="app-container">
 
         <!-- Лаконичная анимированная эмблема по центру -->
@@ -147,6 +230,7 @@
         <!-- Шапка профиля в стиле кибер-спорта -->
         <div class="header">
             <div class="header-left">
+                <button class="side-menu-burger-btn" onclick="window.gameApp.toggleSideMenu()" title="Открыть боковое меню">☰</button>
                 <div class="profile-section" onclick="window.gameApp.openProfileModal()" title="Профиль и аккаунт">
                     <div class="avatar-wrap">
                         <img id="header-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar">
@@ -181,17 +265,15 @@
             </div>
         </div>
 
-        <!-- Навигация (9 вкладок с гонками) -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" id="tab-nav-plates" onclick="window.gameApp.switchTab('generator', this)">🎰 <span id="txt-tab-plates">Номера</span></div>
-            <div class="nav-tab" id="tab-nav-inv" onclick="window.gameApp.switchTab('inventory', this)">🎒 <span id="txt-tab-inv">Инвентарь</span></div>
-            <div class="nav-tab" id="tab-nav-mygarage" onclick="window.gameApp.switchTab('mygarage', this)">🏎️ <span id="txt-tab-mygarage">Мой гараж</span></div>
-            <div class="nav-tab" id="tab-nav-racing" onclick="window.gameApp.switchTab('racing', this)">🏁 <span id="txt-tab-racing">Гонки</span></div>
-            <div class="nav-tab" id="tab-nav-dealership" onclick="window.gameApp.switchTab('dealership', this)">🏪 <span id="txt-tab-dealership">Автосалон</span></div>
-            <div class="nav-tab" id="tab-nav-cases" onclick="window.gameApp.switchTab('cases', this)">📦 <span id="txt-tab-cases">Кейсы</span></div>
-            <div class="nav-tab" id="tab-nav-market" onclick="window.gameApp.switchTab('market', this)">🌐 <span id="txt-tab-market">Рынок</span></div>
-            <div class="nav-tab" id="tab-nav-leaders" onclick="window.gameApp.switchTab('leaders', this)">🏆 <span id="txt-tab-leaders">Рейтинг</span></div>
-            <div class="nav-tab" id="tab-nav-quests" onclick="window.gameApp.switchTab('quests', this)">🎯 <span id="txt-tab-quests">Задания</span></div>
+        <!-- Навигация: плашка текущего раздела с кнопкой бокового меню -->
+        <div class="nav-bar-trigger" onclick="window.gameApp.toggleSideMenu()" title="Открыть боковое меню">
+            <div class="nav-bar-current">
+                <span id="active-tab-icon">🎰</span>
+                <span id="active-tab-label">Номера</span>
+            </div>
+            <div class="nav-bar-menu-pill">
+                <span>☰ Меню разделов (9)</span>
+            </div>
         </div>
 
         <!-- 1. Вкладка Генератор Номеров -->
