@@ -187,41 +187,203 @@ body {
     box-shadow: 0 0 8px #ef4444;
 }
 
-/* Навигация на 8 вкладок с горизонтальным скроллом */
-.nav-tabs { 
-    display: flex; 
-    gap: 6px; 
-    background: var(--bg-card); 
-    border: 1px solid var(--bg-card-border); 
-    backdrop-filter: blur(14px); 
-    border-radius: 14px; 
-    padding: 5px; 
-    overflow-x: auto; 
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-    margin-bottom: 12px;
-}
-.nav-tabs::-webkit-scrollbar { display: none; }
-
-.nav-tab { 
-    padding: 9px 12px; 
-    cursor: pointer; 
-    font-size: 13px; 
-    border-radius: 10px; 
-    white-space: nowrap; 
-    transition: 0.2s; 
-    color: var(--text-sub); 
-    font-weight: 800; 
+/* Кнопка бургера в шапке */
+.side-menu-burger-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-main);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    font-size: 19px;
+    cursor: pointer;
+    transition: 0.15s;
     flex-shrink: 0;
 }
-.nav-tab.active { 
-    background: linear-gradient(135deg, #1e293b, #0f172a); 
-    color: #34d399; 
-    border: 1px solid rgba(52, 211, 153, 0.3);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+.side-menu-burger-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.2); }
+
+/* Компактная плашка текущего раздела с кнопкой бокового меню */
+.nav-bar-trigger {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    backdrop-filter: blur(14px);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.nav-bar-trigger:hover {
+    border-color: rgba(52, 211, 153, 0.4);
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.15);
+}
+.nav-bar-trigger:active {
+    transform: scale(0.985);
+}
+.nav-bar-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+.nav-bar-menu-pill {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(16, 185, 129, 0.1));
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    color: #34d399;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.5px;
+}
+
+/* Боковое меню (Шторка / Drawer) для ПК и Телефонов */
+.side-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+    z-index: 2500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.side-menu-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 290px;
+    max-width: 84vw;
+    height: 100vh;
+    background: #080c16;
+    border-right: 1px solid rgba(255, 255, 255, 0.09);
+    z-index: 2600;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 14px 0 35px rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    box-sizing: border-box;
+}
+.side-menu.show {
+    transform: translateX(0);
+}
+
+.side-menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 16px 14px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.side-menu-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.side-menu-close {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-sub);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.15s;
+}
+.side-menu-close:hover { color: #fff; border-color: #ef4444; }
+
+.side-menu-items {
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.side-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    font-weight: 800;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: 0.15s;
+    border: 1px solid transparent;
+}
+.side-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+.side-item.active {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.16), rgba(6, 78, 59, 0.25));
+    border-color: rgba(52, 211, 153, 0.35);
+    color: #34d399;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+.side-item-icon {
+    font-size: 18px;
+    line-height: 1;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.side-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.side-item-text {
+    font-size: 14px;
+    font-weight: 800;
+}
+.side-item-sub {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--text-sub);
+    opacity: 0.8;
+}
+.side-item.active .side-item-sub {
+    color: #a7f3d0;
+    opacity: 0.95;
+}
+.side-menu-footer {
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 11px;
+    color: var(--text-sub);
+    text-align: center;
 }
 .hidden { display: none !important; }
 
