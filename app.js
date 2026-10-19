@@ -538,6 +538,19 @@
         renderFrame();
     }
 
+    const tabMeta = {
+        generator: { icon: '🎰', ru: 'Номера', en: 'Plates' },
+        inventory: { icon: '🎒', ru: 'Инвентарь', en: 'Inventory' },
+        mygarage: { icon: '🏎️', ru: 'Мой гараж', en: 'My Garage' },
+        racing: { icon: '🏁', ru: 'Гонки 402м', en: 'Racing 402m' },
+        dealership: { icon: '🏪', ru: 'Автосалон', en: 'Dealership' },
+        cases: { icon: '📦', ru: 'Кейсы', en: 'Cases' },
+        market: { icon: '🌐', ru: 'Онлайн-рынок', en: 'Market' },
+        leaders: { icon: '🏆', ru: 'Рейтинг игроков', en: 'Leaderboard' },
+        quests: { icon: '🎯', ru: 'Квесты клуба', en: 'Quests' }
+    };
+    let currentTabId = 'generator';
+
     function applyTranslations() {
         const t = i18n[currentLang] || i18n.ru;
         const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
@@ -551,6 +564,22 @@
         setTxt('txt-tab-market', t.tabMarket);
         setTxt('txt-tab-leaders', t.tabLeaders);
         setTxt('txt-tab-quests', t.tabQuests);
+
+        // Боковое меню
+        setTxt('side-txt-plates', t.tabPlates);
+        setTxt('side-txt-inv', t.tabInv);
+        setTxt('side-txt-mygarage', t.tabMyGarage);
+        setTxt('side-txt-racing', currentLang === 'en' ? 'Racing 402m' : 'Гонки 402м');
+        setTxt('side-txt-dealership', t.tabDealership);
+        setTxt('side-txt-cases', t.tabCases);
+        setTxt('side-txt-market', t.tabMarket);
+        setTxt('side-txt-leaders', t.tabLeaders);
+        setTxt('side-txt-quests', t.tabQuests);
+
+        const curTab = tabMeta[currentTabId];
+        if (curTab) {
+            setTxt('active-tab-label', (currentLang === 'en' ? curTab.en : curTab.ru));
+        }
         
         setTxt('txt-spin-all', t.spinAll);
         setTxt('txt-spin-num', t.spinNum);
@@ -2489,7 +2518,7 @@
                         <small style="color:#fbbf24; font-weight:800; font-size:11px;">Ставка: ${l.bet.toLocaleString('ru-RU')} ₽ ➔ Приз: +${l.reward.toLocaleString('ru-RU')} ₽</small>
                     </div>
                 </div>
-                <button class="pay-all-btn" style="white-space:nowrap;" onclick="window.gameApp.startRace(${idx})">В бой 🏁</button>
+                <button class="pay-all-btn" style="white-space:nowrap;" onclick="window.gameApp.startRace(${idx})">На старт 🏁</button>
             `;
             list.appendChild(div);
         });
@@ -2724,12 +2753,56 @@
         alert("Тюнинг успешно установлен на ваш автомобиль!");
     }
 
+    function openSideMenu() {
+        const overlay = document.getElementById('side-menu-overlay');
+        const menu = document.getElementById('side-menu');
+        if (overlay) overlay.classList.add('show');
+        if (menu) menu.classList.add('show');
+    }
+
+    function closeSideMenu() {
+        const overlay = document.getElementById('side-menu-overlay');
+        const menu = document.getElementById('side-menu');
+        if (overlay) overlay.classList.remove('show');
+        if (menu) menu.classList.remove('show');
+    }
+
+    function toggleSideMenu() {
+        const menu = document.getElementById('side-menu');
+        if (menu && menu.classList.contains('show')) {
+            closeSideMenu();
+        } else {
+            openSideMenu();
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeSideMenu();
+    });
+
     function switchTab(tabId, element) {
+        currentTabId = tabId;
         if (tabId !== 'generator' && isAutoSpin) stopAutoSpin();
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-        document.getElementById(tabId).classList.remove('hidden');
+        document.querySelectorAll('.side-item').forEach(el => el.classList.remove('active'));
+
+        const target = document.getElementById(tabId);
+        if (target) target.classList.remove('hidden');
+
         if (element) element.classList.add('active');
+        const sideEl = document.getElementById('menu-item-' + tabId);
+        if (sideEl) sideEl.classList.add('active');
+
+        const cur = tabMeta[tabId];
+        if (cur) {
+            const iconEl = document.getElementById('active-tab-icon');
+            const labelEl = document.getElementById('active-tab-label');
+            if (iconEl) iconEl.innerText = cur.icon;
+            if (labelEl) labelEl.innerText = (currentLang === 'en' ? cur.en : cur.ru);
+        }
+
+        closeSideMenu();
 
         if (tabId === 'market') loadMarket();
         if (tabId === 'leaders') loadLeaderboard();
@@ -2757,6 +2830,8 @@
         openAttachModal, closeAttachModal,
         openCasePreview, closeCasePreview, buyCase, switchTab,
         closeCarSpecModal,
+        // Боковое меню (шторка для ПК и телефонов)
+        openSideMenu, closeSideMenu, toggleSideMenu,
         // Новые функции гонок и тюнинга:
         renderRacingTab, selectRacingCar, startRace, closeRaceModal,
         openTuningModal, closeTuningModal, selectTuningColor, selectTuningTint, selectTuningStage, applyTuning
