@@ -20,7 +20,7 @@
     const DEFAULT_AVATAR = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
     const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-    function getCarSVG(carId) {
+    function getCarSVG(carId, customColor, customTint) {
         const bg = `
             <rect width="96" height="75" fill="#0b0f17"/>
             <line x1="0" y1="46" x2="96" y2="46" stroke="#1e293b" stroke-width="1.2"/>
@@ -28,7 +28,8 @@
             <rect y="56" width="96" height="19" fill="#070a10"/>
         `;
 
-        switch(carId) {
+        let rawSvg = (function() {
+            switch(carId) {
             case 'kalina1':
                 return `<svg viewBox="0 0 96 75" xmlns="http://www.w3.org/2000/svg">
                     ${bg}
@@ -171,7 +172,26 @@
                     <path d="M10 48 L20 36 L44 28 L66 28 L80 38 L88 48 Z" fill="#0284c7"/>
                     <circle cx="26" cy="53" r="7" fill="#020617"/><circle cx="72" cy="53" r="7" fill="#020617"/>
                 </svg>`;
+            }
+        })();
+
+        const defaultColors = {
+            kalina1: '#eab308', kalina2: '#ef4444', granta_sport: '#2563eb', polo: '#cbd5e1',
+            golf: '#0284c7', m5_e60: '#1e293b', vesta_sport: '#f97316', tesla_s: '#dc2626',
+            rs6: '#475569', gelik: '#0f172a', x5: '#1e3a8a', amg63: '#334155', kamaz: '#059669'
+        };
+
+        if (customColor && defaultColors[carId]) {
+            rawSvg = rawSvg.split(defaultColors[carId]).join(customColor);
         }
+
+        if (customTint === '5%') {
+            rawSvg = rawSvg.replaceAll('opacity="0.8"', 'opacity="0.98"').replaceAll('opacity="0.75"', 'opacity="0.98"').replaceAll('opacity="0.85"', 'opacity="0.98"').replaceAll('opacity="0.6"', 'opacity="0.98"');
+        } else if (customTint === '50%') {
+            rawSvg = rawSvg.replaceAll('opacity="0.8"', 'opacity="0.88"').replaceAll('opacity="0.75"', 'opacity="0.88"').replaceAll('opacity="0.85"', 'opacity="0.88"');
+        }
+
+        return rawSvg;
     }
 
     const carsData = [
@@ -525,6 +545,7 @@
         setTxt('txt-tab-plates', t.tabPlates);
         setTxt('txt-tab-inv', t.tabInv);
         setTxt('txt-tab-mygarage', t.tabMyGarage);
+        setTxt('txt-tab-racing', currentLang === 'en' ? 'Racing' : 'Гонки');
         setTxt('txt-tab-dealership', t.tabDealership);
         setTxt('txt-tab-cases', t.tabCases);
         setTxt('txt-tab-market', t.tabMarket);
@@ -599,6 +620,8 @@
                     setSpinButtonsDisabled(false);
                     checkPendingMarketSales();
                     checkDailyBadge();
+                    loadMarket();
+                    loadLeaderboard();
                 }).catch(() => {
                     closeAuthModal();
                     setSpinButtonsDisabled(false);
@@ -1115,21 +1138,24 @@
         let isX00 = (nString[1] === '0' && nString[2] === '0' && nString[0] !== '0');
         let is0XX = (nString[0] === '0' && nString[1] !== '0' && nString[1] === nString[2]);
 
+        // СУПЕР ДЖЕКПОТ - сохраняем 10 000 000 ₽ без изменений
         if (lString === 'АЕО' && nString === '011') return 10000000;
-        if (isEliteLetters) price += 1600000;
+        
+        // Все остальные надбавки снижены на 20%
+        if (isEliteLetters) price += 1280000;
         
         if (isSameLetters && !isEliteLetters && isSameNumbers) {
-            return Math.floor(sRand() * (780000 - 560000 + 1)) + 560000;
+            return Math.floor((sRand() * (780000 - 560000 + 1) + 560000) * 0.8);
         }
         
-        if (isSameLetters && !isEliteLetters) price += 24000;
-        else if (isMirrorLetters && !isEliteLetters) price += 8000;
+        if (isSameLetters && !isEliteLetters) price += 19200;
+        else if (isMirrorLetters && !isEliteLetters) price += 6400;
 
-        if (is00X) price += Math.floor(sRand() * (350000 - 80000 + 1)) + 80000;
-        else if (isX00) price += 120000;
-        else if (is0XX && nString !== '011') price += 64000;
-        else if (isSameNumbers) price += Math.floor(sRand() * (350000 - 40000 + 1)) + 40000; 
-        else if (isMirrorNumbers) price += 16000;
+        if (is00X) price += Math.floor((sRand() * (350000 - 80000 + 1) + 80000) * 0.8);
+        else if (isX00) price += 96000;
+        else if (is0XX && nString !== '011') price += 51200;
+        else if (isSameNumbers) price += Math.floor((sRand() * (350000 - 40000 + 1) + 40000) * 0.8); 
+        else if (isMirrorNumbers) price += 12800;
 
         return price;
     }
@@ -1138,13 +1164,13 @@
 
     function getRarity(price) {
         const isEn = (currentLang === 'en');
-        if (price < 8000) return { text: isEn ? "Common" : "Обычный", bg: "transparent", color: "#888", border: "none", glow: "none" };
-        if (price < 24000) return { text: isEn ? "Uncommon" : "Необычный", bg: "#2f80ed", color: "white", border: "1px solid black", glow: "0 0 16px rgba(47, 128, 237, 0.9), 0 0 32px rgba(47, 128, 237, 0.5)" }; 
-        if (price < 40000) return { text: isEn ? "Rare" : "Редкий", bg: "#27ae60", color: "white", border: "1px solid black", glow: "0 0 16px rgba(39, 174, 96, 0.9), 0 0 32px rgba(39, 174, 96, 0.5)" }; 
-        if (price < 120000) return { text: isEn ? "Super Rare" : "Супер редкий", bg: "#eb5757", color: "white", border: "1px solid black", glow: "0 0 20px rgba(235, 87, 87, 0.9), 0 0 40px rgba(235, 87, 87, 0.5)" }; 
-        if (price < 400000) return { text: isEn ? "Epic" : "Эпический", bg: "#9b51e0", color: "white", border: "1px solid black", glow: "0 0 22px rgba(155, 81, 224, 0.9), 0 0 44px rgba(155, 81, 224, 0.5)" }; 
-        if (price < 800000) return { text: isEn ? "Legendary" : "Легендарный", bg: "#ffd700", color: "black", border: "1px solid black", glow: "0 0 25px rgba(255, 215, 0, 0.95), 0 0 50px rgba(255, 215, 0, 0.6)" }; 
-        if (price < 2000000) return { text: isEn ? "Cool" : "Крутой", bg: "#00ced1", color: "black", border: "1px solid black", glow: "0 0 25px rgba(0, 206, 209, 0.95), 0 0 50px rgba(0, 206, 209, 0.6)" }; 
+        if (price < 6400) return { text: isEn ? "Common" : "Обычный", bg: "transparent", color: "#888", border: "none", glow: "none" };
+        if (price < 19200) return { text: isEn ? "Uncommon" : "Необычный", bg: "#2f80ed", color: "white", border: "1px solid black", glow: "0 0 16px rgba(47, 128, 237, 0.9), 0 0 32px rgba(47, 128, 237, 0.5)" }; 
+        if (price < 32000) return { text: isEn ? "Rare" : "Редкий", bg: "#27ae60", color: "white", border: "1px solid black", glow: "0 0 16px rgba(39, 174, 96, 0.9), 0 0 32px rgba(39, 174, 96, 0.5)" }; 
+        if (price < 96000) return { text: isEn ? "Super Rare" : "Супер редкий", bg: "#eb5757", color: "white", border: "1px solid black", glow: "0 0 20px rgba(235, 87, 87, 0.9), 0 0 40px rgba(235, 87, 87, 0.5)" }; 
+        if (price < 320000) return { text: isEn ? "Epic" : "Эпический", bg: "#9b51e0", color: "white", border: "1px solid black", glow: "0 0 22px rgba(155, 81, 224, 0.9), 0 0 44px rgba(155, 81, 224, 0.5)" }; 
+        if (price < 640000) return { text: isEn ? "Legendary" : "Легендарный", bg: "#ffd700", color: "black", border: "1px solid black", glow: "0 0 25px rgba(255, 215, 0, 0.95), 0 0 50px rgba(255, 215, 0, 0.6)" }; 
+        if (price < 1600000) return { text: isEn ? "Cool" : "Крутой", bg: "#00ced1", color: "black", border: "1px solid black", glow: "0 0 25px rgba(0, 206, 209, 0.95), 0 0 50px rgba(0, 206, 209, 0.6)" }; 
         return { text: isEn ? "EXCLUSIVE" : "БЛАТНОЙ", bg: "#e0115f", color: "white", border: "1px solid black", glow: "0 0 30px rgba(224, 17, 95, 1), 0 0 60px rgba(224, 17, 95, 0.7)" }; 
     }
 
@@ -1217,23 +1243,29 @@
         const rand = Math.random() * 100;
         let finalNum;
 
-        if (rand < 0.001) {
+        // Сильно урезанные вероятности для ценных номеров
+        if (rand < 0.0005) {
             finalNum = "011";
-        } else if (rand < 0.001 + 2.0) {
+        } else if (rand < 0.0005 + 0.3) {
+            // Одинаковые цифры (777, 888) - снижено с 2.0% до 0.3%
             const digit = Math.floor(Math.random() * 10).toString();
             finalNum = digit + digit + digit;
-        } else if (rand < 0.001 + 2.0 + 5.0) {
+        } else if (rand < 0.0005 + 0.3 + 0.8) {
+            // 00X (001, 007) - снижено с 5.0% до 0.8%
             const nonZero = Math.floor(Math.random() * 9 + 1).toString();
             finalNum = "00" + nonZero;
-        } else if (rand < 0.001 + 2.0 + 5.0 + 7.099) {
+        } else if (rand < 0.0005 + 0.3 + 0.8 + 1.4) {
+            // 0XX (077, 088) - снижено с 7.1% до 1.4%
             const d = Math.floor(Math.random() * 8 + 2).toString();
             finalNum = "0" + d + d;
-        } else if (rand < 0.001 + 2.0 + 5.0 + 7.099 + 15.0) {
+        } else if (rand < 0.0005 + 0.3 + 0.8 + 1.4 + 4.5) {
+            // Зеркальные (717, 525) - снижено с 15% до 4.5%
             let d1 = Math.floor(Math.random() * 10).toString();
             let d2 = Math.floor(Math.random() * 10).toString();
             while (d1 === d2) d2 = Math.floor(Math.random() * 10).toString();
             finalNum = d1 + d2 + d1;
         } else {
+            // 93% обычные случайные цифры
             let d1 = Math.floor(Math.random() * 9 + 1).toString();
             let d2 = Math.floor(Math.random() * 10).toString();
             let d3 = Math.floor(Math.random() * 10).toString();
@@ -1279,21 +1311,26 @@
         const rand = Math.random() * 100;
         let finalL1, finalL2, finalL3;
 
-        if (rand < 0.001) {
+        // Сильно урезанные вероятности для букв
+        if (rand < 0.0005) {
             finalL1 = 'А'; finalL2 = 'Е'; finalL3 = 'О';
-        } else if (rand < 0.001 + 1.0) {
+        } else if (rand < 0.0005 + 0.2) {
+            // Элитные серии (АМР, ВОР, ЕКХ, ААА) - снижено с 1.0% до 0.2%
             const elite = randomItem(eliteLetters);
             finalL1 = elite[0]; finalL2 = elite[1]; finalL3 = elite[2];
-        } else if (rand < 0.001 + 1.0 + 3.0) {
+        } else if (rand < 0.0005 + 0.2 + 0.6) {
+            // Одинаковые буквы (МММ, РРР) - снижено с 3.0% до 0.6%
             const nonEliteChars = lettersArr.filter(c => !eliteLetters.includes(c+c+c));
             const ch = randomItem(nonEliteChars);
             finalL1 = ch; finalL2 = ch; finalL3 = ch;
-        } else if (rand < 0.001 + 1.0 + 3.0 + 15.0) {
+        } else if (rand < 0.0005 + 0.2 + 0.6 + 4.0) {
+            // Зеркальные буквы (ABA) - снижено с 15.0% до 4.0%
             let c1 = randomItem(lettersArr);
             let c2 = randomItem(lettersArr);
             while (c1 === c2) c2 = randomItem(lettersArr);
             finalL1 = c1; finalL2 = c2; finalL3 = c1;
         } else {
+            // 95.2% обычные буквы
             finalL1 = randomItem(lettersArr);
             let rest = lettersArr.filter(c => c !== finalL1);
             finalL3 = randomItem(rest);
@@ -1341,13 +1378,14 @@
         const rand = Math.random() * 100;
         let targetRarity = "Обычный";
 
-        if (rand < 0.011) targetRarity = "БЛАТНОЙ";
-        else if (rand < 0.011 + 0.099) targetRarity = "Крутой";
-        else if (rand < 0.011 + 0.099 + 0.5) targetRarity = "Легендарный";
-        else if (rand < 0.011 + 0.099 + 0.5 + 1.5) targetRarity = "Эпический";
-        else if (rand < 0.011 + 0.099 + 0.5 + 1.5 + 3.0) targetRarity = "Супер редкий";
-        else if (rand < 0.011 + 0.099 + 0.5 + 1.5 + 3.0 + 6.0) targetRarity = "Редкий";
-        else targetRarity = "Обычный";
+        // Сильно урезанные вероятности для Spin All
+        if (rand < 0.003) targetRarity = "БЛАТНОЙ"; // 0.003% (было 0.011%)
+        else if (rand < 0.003 + 0.04) targetRarity = "Крутой"; // 0.04% (было 0.1%)
+        else if (rand < 0.003 + 0.04 + 0.15) targetRarity = "Легендарный"; // 0.15% (было 0.5%)
+        else if (rand < 0.003 + 0.04 + 0.15 + 0.6) targetRarity = "Эпический"; // 0.6% (было 1.5%)
+        else if (rand < 0.003 + 0.04 + 0.15 + 0.6 + 1.6) targetRarity = "Супер редкий"; // 1.6% (было 3.0%)
+        else if (rand < 0.003 + 0.04 + 0.15 + 0.6 + 1.6 + 3.6) targetRarity = "Редкий"; // 3.6% (было 6.0%)
+        else targetRarity = "Обычный"; // ~94% обычных номеров
 
         let targetCombo = forcePlate(targetRarity);
         const p = parsePlateText(targetCombo.text);
@@ -1489,11 +1527,13 @@
         saveProgress();
     }
 
-    // Умная массовая оплата хранения (в первую очередь закрывает долги)
+    // Умная массовая оплата хранения (только когда есть долги или срок подходит)
     function payAllPlatesStorage() {
         if (inventory.length === 0) return;
         let targetItems = inventory.filter(item => isTaxExpired(item.taxPaidAt) || isTaxDueSoon(item.taxPaidAt));
-        if (targetItems.length === 0) targetItems = inventory;
+        if (targetItems.length === 0) {
+            return alert(currentLang === 'en' ? "All plate storage fees are already paid!" : "Хранение всех номеров уже оплачено!");
+        }
 
         let totalFee = 0;
         targetItems.forEach(item => { totalFee += getPlateStorageFee(item); });
@@ -1529,7 +1569,9 @@
     function payAllCarsTax() {
         if (myCars.length === 0) return;
         let targetCars = myCars.filter(car => isTaxExpired(car.taxPaidAt) || isTaxDueSoon(car.taxPaidAt));
-        if (targetCars.length === 0) targetCars = myCars;
+        if (targetCars.length === 0) {
+            return alert(currentLang === 'en' ? "All vehicle taxes are already paid!" : "Транспортный налог за весь автопарк уже оплачен!");
+        }
 
         let totalTax = 0;
         targetCars.forEach(car => { totalTax += getCarTaxFee(car); });
@@ -1677,9 +1719,9 @@
         if (!car.plate || !car.plate.price) return;
         let cost = Number(car.plate.price) * 0.1;
         if (isNaN(cost) || cost <= 0) return;
-        if (balance < cost) return alert(currentLang === 'en' ? `Not enough funds to detach! Need ${cost.toLocaleString('ru-RU')} ₽` : `Не хватает денег на снятие! Нужно ${cost.toLocaleString('ru-RU')} ₽`);
         balance -= cost;
-        car.plate.taxPaidAt = Date.now();
+        // Сохраняем исходное время налога, не сбрасывая его в ноль
+        if (!car.plate.taxPaidAt) car.plate.taxPaidAt = Date.now();
         inventory.unshift(car.plate); 
         car.plate = null; 
         updateBalance();
@@ -1781,11 +1823,12 @@
             let div = document.createElement('div');
             div.className = 'item';
             
+            let stageBadge = car.stage ? `<span class="stage-badge">STAGE ${car.stage}</span>` : '';
             let title = `
                 <div style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%;">
-                    <div class="car-pixel-preview owned-preview" style="width: 82px; height: 64px;" title="Характеристики">${getCarSVG(cId)}</div>
+                    <div class="car-pixel-preview owned-preview" style="width: 82px; height: 64px;" title="Характеристики">${getCarSVG(cId, car.customColor, car.tint)}</div>
                     <div style="text-align: left;">
-                        <b style="font-size: 16px; color:#fff;">${car.name}</b><br>
+                        <b style="font-size: 16px; color:#fff;">${car.name}</b> ${stageBadge}<br>
                         <small style="color:var(--text-sub);">Цена: ${car.basePrice.toLocaleString('ru-RU')} ₽</small>
                     </div>
                 </div>
@@ -1810,6 +1853,7 @@
                         <div class="mini-plate">${rHtml}${car.plate.text}</div>
                     </div>
                     <div class="garage-action-row">
+                        <button class="act-btn amber" id="btn-tune-${index}">🎨 Тюнинг</button>
                         <button class="act-btn blue" id="btn-detach-${index}">${t.detachBtn}<br>-${detachCost.toLocaleString('ru-RU')} ₽</button>
                         <button class="act-btn sell-btn" id="btn-sell-all-${index}">${t.sellAllBtn}<br>+${(totalSellPrice >= 1000000 ? (totalSellPrice/1000000).toFixed(1) + 'М' : totalSellPrice.toLocaleString('ru-RU'))}</button>
                     </div>
@@ -1817,6 +1861,7 @@
                 `;
                 myCarsDiv.appendChild(div);
                 div.querySelector('.owned-preview').onclick = () => openCarSpecModal(cId, car);
+                div.querySelector(`#btn-tune-${index}`).onclick = () => openTuningModal(index);
                 div.querySelector(`#btn-detach-${index}`).onclick = () => detachPlateInternal(index);
                 div.querySelector(`#btn-sell-all-${index}`).onclick = () => sellCarInternal(index, true);
                 div.querySelector(`#btn-pay-car-${index}`).onclick = () => paySingleCarTax(index);
@@ -1824,6 +1869,7 @@
                 div.innerHTML = `
                     ${title}
                     <div class="garage-action-row">
+                        <button class="act-btn amber" id="btn-tune-${index}">🎨 Тюнинг</button>
                         <button class="act-btn buy" id="btn-attach-${index}">${t.attachPlateBtn}</button>
                         <button class="act-btn sell-btn" id="btn-sell-car-${index}">${t.sellCarBtn}<br>+${carSellPrice.toLocaleString('ru-RU')} ₽</button>
                     </div>
@@ -1831,6 +1877,7 @@
                 `;
                 myCarsDiv.appendChild(div);
                 div.querySelector('.owned-preview').onclick = () => openCarSpecModal(cId, car);
+                div.querySelector(`#btn-tune-${index}`).onclick = () => openTuningModal(index);
                 div.querySelector(`#btn-attach-${index}`).onclick = () => openAttachModal(index);
                 div.querySelector(`#btn-sell-car-${index}`).onclick = () => sellCarInternal(index, false);
                 div.querySelector(`#btn-pay-car-${index}`).onclick = () => paySingleCarTax(index);
@@ -1934,42 +1981,54 @@
         });
     }
 
+    let marketListenerAttached = false;
+    let payoutsListenerAttached = false;
+
+    function renderMarketItems(val) {
+        const list = document.getElementById('market-list');
+        if (!list) return;
+        const t = i18n[currentLang] || i18n.ru;
+        if (!val || Object.keys(val).length === 0) {
+            list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:20px;">На рынке пока нет активных лотов. Выставьте свой номер первым!</div>`;
+            return;
+        }
+        const entries = Object.entries(val).reverse();
+        list.innerHTML = '';
+        entries.forEach(([lotId, lot]) => {
+            if (!lot || !lot.plate) return;
+            const isMine = currentUser && lot.sellerUid === currentUser.uid;
+            const r = lot.plate.rarity || getRarity(lot.plate.price);
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.innerHTML = `
+                <div class="item-main-row">
+                    <div>
+                        <span class="case-preview-badge" style="background:${r.bg}; color:${r.color};">${r.text}</span>
+                        <b style="color:#fff; font-size:15px; margin-left:6px;">${lot.plate.text}</b><br>
+                        <small style="color:var(--text-sub);">Продавец: <b style="color:#34d399">${lot.sellerName}</b> • Оценка: ${lot.plate.price.toLocaleString('ru-RU')} ₽</small>
+                    </div>
+                    <button class="act-btn ${isMine ? 'sell-btn' : 'buy'}" id="btn-lot-${lotId}">
+                        ${isMine ? 'Снять лот' : `Купить<br>${lot.askPrice.toLocaleString('ru-RU')} ₽`}
+                    </button>
+                </div>
+            `;
+            list.appendChild(div);
+            div.querySelector(`#btn-lot-${lotId}`).onclick = () => handleMarketAction(lotId, lot);
+        });
+    }
+
     function loadMarket() {
         const list = document.getElementById('market-list');
         if (!list) return;
-        list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:15px;">Загрузка лотов...</div>`;
-        db.ref('market').limitToLast(40).once('value').then(snap => {
-            const val = snap.val();
-            if (!val) {
-                list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:20px;">На рынке пока нет активных лотов. Выставьте свой номер первым!</div>`;
-                return;
-            }
-            const entries = Object.entries(val).reverse();
-            list.innerHTML = '';
-            entries.forEach(([lotId, lot]) => {
-                if (!lot || !lot.plate) return;
-                const isMine = currentUser && lot.sellerUid === currentUser.uid;
-                const r = lot.plate.rarity || getRarity(lot.plate.price);
-                const div = document.createElement('div');
-                div.className = 'item';
-                div.innerHTML = `
-                    <div class="item-main-row">
-                        <div>
-                            <span class="case-preview-badge" style="background:${r.bg}; color:${r.color};">${r.text}</span>
-                            <b style="color:#fff; font-size:15px; margin-left:6px;">${lot.plate.text}</b><br>
-                            <small style="color:var(--text-sub);">Продавец: <b style="color:#34d399">${lot.sellerName}</b> • Оценка: ${lot.plate.price.toLocaleString('ru-RU')} ₽</small>
-                        </div>
-                        <button class="act-btn ${isMine ? 'sell-btn' : 'buy'}" id="btn-lot-${lotId}">
-                            ${isMine ? 'Снять лот' : `Купить<br>${lot.askPrice.toLocaleString('ru-RU')} ₽`}
-                        </button>
-                    </div>
-                `;
-                list.appendChild(div);
-                div.querySelector(`#btn-lot-${lotId}`).onclick = () => handleMarketAction(lotId, lot);
+        if (!marketListenerAttached) {
+            marketListenerAttached = true;
+            list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:15px;">Загрузка лотов в реальном времени...</div>`;
+            db.ref('market').limitToLast(50).on('value', snap => {
+                renderMarketItems(snap.val());
+            }, err => {
+                list.innerHTML = `<div style="color:#ef4444; text-align:center; padding:15px;">Ошибка загрузки рынка. Проверьте правила доступа Firebase!</div>`;
             });
-        }).catch(err => {
-            list.innerHTML = `<div style="color:#ef4444; text-align:center; padding:15px;">Ошибка загрузки рынка. Проверьте правила доступа Firebase!</div>`;
-        });
+        }
     }
 
     function handleMarketAction(lotId, lot) {
@@ -1978,43 +2037,55 @@
         if (!isMine && balance < lot.askPrice) {
             return alert("Недостаточно средств для покупки этого номера!");
         }
+
         const lotRef = db.ref('market/' + lotId);
-        lotRef.transaction(current => {
-            if (current === null) return;
-            return null;
-        }, (err, committed) => {
-            if (err || !committed) {
-                alert("Этот лот уже куплен или снят!");
-                loadMarket();
-                return;
+        // Проверяем существование лота и атомарно удаляем его
+        lotRef.once('value').then(snap => {
+            const currentLot = snap.val();
+            if (!currentLot) {
+                return alert("Этот лот уже куплен или снят!");
             }
-            if (isMine) {
-                // ПРАВКА ЭКСПЛОЙТА: при возврате своего номера его таймер НЕ сбрасывается!
-                inventory.unshift(lot.plate);
-                renderInventory();
-                saveProgress();
-            } else {
-                balance -= lot.askPrice;
-                // А вот новому владельцу даются честные 3 дня
-                lot.plate.taxPaidAt = Date.now();
-                inventory.unshift(lot.plate);
-                db.ref('marketPayouts/' + lot.sellerUid).push({
-                    amount: lot.askPrice,
-                    plateText: lot.plate.text,
-                    buyerName: nickname || 'Игрок'
-                });
-                updateBalance();
-                renderInventory();
-                saveProgress();
-                alert(`Вы успешно купили номер ${lot.plate.text}!`);
-            }
-            loadMarket();
+
+            lotRef.remove().then(() => {
+                if (isMine) {
+                    inventory.unshift(currentLot.plate || lot.plate);
+                    renderInventory();
+                    saveProgress();
+                    alert("Номер успешно снят с продажи и возвращён в ваш инвентарь.");
+                } else {
+                    balance -= Number(lot.askPrice);
+                    const boughtPlate = currentLot.plate || lot.plate;
+                    boughtPlate.taxPaidAt = Date.now();
+                    inventory.unshift(boughtPlate);
+
+                    db.ref('marketPayouts/' + lot.sellerUid).push({
+                        amount: Number(lot.askPrice),
+                        plateText: boughtPlate.text,
+                        buyerName: nickname || 'Игрок',
+                        createdAt: Date.now()
+                    }).catch(e => console.error("Payout error:", e));
+
+                    updateBalance();
+                    renderInventory();
+                    saveProgress();
+                    playWinFanfare();
+                    alert(`🎉 Вы успешно купили номер ${boughtPlate.text}!`);
+                }
+            }).catch(err => {
+                console.error("Market lot action error:", err);
+                alert("Ошибка при выполнении операции с лотом.");
+            });
+        }).catch(err => {
+            console.error("Fetch lot error:", err);
+            alert("Ошибка связи с базой данных рынка.");
         });
     }
 
     function checkPendingMarketSales() {
         if (!currentUser) return;
         const ref = db.ref('marketPayouts/' + currentUser.uid);
+        
+        // Одноразовая проверка при входе
         ref.once('value').then(snap => {
             const payouts = snap.val();
             if (!payouts) return;
@@ -2025,58 +2096,86 @@
                 ref.remove();
                 updateBalance();
                 saveProgress();
+                playWinFanfare();
                 alert(`🌐 На рынке купили ваши номера на сумму +${totalEarned.toLocaleString('ru-RU')} ₽!`);
             }
         });
+
+        // Слушатель в реальном времени при нахождении в игре!
+        if (!payoutsListenerAttached) {
+            payoutsListenerAttached = true;
+            ref.on('child_added', snap => {
+                const p = snap.val();
+                if (!p || !p.amount) return;
+                const earned = Number(p.amount) || 0;
+                snap.ref.remove();
+                balance += earned;
+                updateBalance();
+                saveProgress();
+                playWinFanfare();
+                alert(`🌐 Внимание! На рынке только что купили ваш номер «${p.plateText || ''}»!\nВам начислено +${earned.toLocaleString('ru-RU')} ₽ (Покупатель: ${p.buyerName || 'Игрок'})`);
+            });
+        }
+    }
+
+    let leaderboardListenerAttached = false;
+
+    function renderLeaderboardItems(val) {
+        const list = document.getElementById('leaders-list');
+        if (!list) return;
+        val = val || {};
+        const arr = Object.entries(val).map(([uid, item]) => ({ uid, ...item }));
+        arr.sort((a, b) => (b.netWorth || 0) - (a.netWorth || 0));
+
+        list.innerHTML = '';
+        let myRank = -1;
+        arr.forEach((p, idx) => {
+            const rank = idx + 1;
+            const isMe = currentUser && p.uid === currentUser.uid;
+            if (isMe) myRank = rank;
+
+            const rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+
+            const row = document.createElement('div');
+            row.className = `leader-row ${isMe ? 'me' : ''}`;
+            row.innerHTML = `
+                <div class="leader-rank ${rankClass}">${medal}</div>
+                <div class="leader-user">
+                    <img src="${p.avatar ? p.avatar : DEFAULT_AVATAR}" class="avatar" style="width:30px; height:30px;">
+                    <div style="min-width:0;">
+                        <b style="color:#fff; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.nickname || 'Игрок'}</b>
+                        <small style="color:var(--text-sub); font-size:11px;">LVL ${p.level || 1}</small>
+                    </div>
+                </div>
+                <div class="leader-val">${Math.floor(p.netWorth || 0).toLocaleString('ru-RU')} ₽</div>
+            `;
+            list.appendChild(row);
+        });
+
+        const summary = document.getElementById('my-rank-summary');
+        if (summary && currentUser) {
+            const myWorth = Math.floor(calculateNetWorth()).toLocaleString('ru-RU');
+            summary.innerHTML = `Ваш капитал: <b style="color:#34d399">${myWorth} ₽</b> • Ваше место: <b style="color:#fbbf24">${myRank > 0 ? '#' + myRank : 'Вне ТОП-50'}</b>`;
+        }
     }
 
     function loadLeaderboard() {
         const list = document.getElementById('leaders-list');
         if (!list) return;
-        list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:15px;">Загрузка рейтинга...</div>`;
-        
         if (currentUser) saveProgress();
 
-        db.ref('leaderboard').orderByChild('netWorth').limitToLast(50).once('value').then(snap => {
-            const val = snap.val() || {};
-            const arr = Object.entries(val).map(([uid, item]) => ({ uid, ...item }));
-            arr.sort((a, b) => (b.netWorth || 0) - (a.netWorth || 0));
-
-            list.innerHTML = '';
-            let myRank = -1;
-            arr.forEach((p, idx) => {
-                const rank = idx + 1;
-                const isMe = currentUser && p.uid === currentUser.uid;
-                if (isMe) myRank = rank;
-
-                const rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
-                const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-
-                const row = document.createElement('div');
-                row.className = `leader-row ${isMe ? 'me' : ''}`;
-                row.innerHTML = `
-                    <div class="leader-rank ${rankClass}">${medal}</div>
-                    <div class="leader-user">
-                        <img src="${p.avatar ? p.avatar : DEFAULT_AVATAR}" class="avatar" style="width:30px; height:30px;">
-                        <div style="min-width:0;">
-                            <b style="color:#fff; font-size:14px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.nickname || 'Игрок'}</b>
-                            <small style="color:var(--text-sub); font-size:11px;">LVL ${p.level || 1}</small>
-                        </div>
-                    </div>
-                    <div class="leader-val">${Math.floor(p.netWorth || 0).toLocaleString('ru-RU')} ₽</div>
-                `;
-                list.appendChild(row);
+        if (!leaderboardListenerAttached) {
+            leaderboardListenerAttached = true;
+            list.innerHTML = `<div style="color:var(--text-sub); text-align:center; padding:15px;">Загрузка рейтинга в реальном времени...</div>`;
+            db.ref('leaderboard').orderByChild('netWorth').limitToLast(50).on('value', snap => {
+                renderLeaderboardItems(snap.val());
+            }, err => {
+                list.innerHTML = `<div style="color:#ef4444; text-align:center; padding:15px;">Ошибка загрузки рейтинга. Проверьте права базы данных!</div>`;
             });
-
-            const summary = document.getElementById('my-rank-summary');
-            if (summary && currentUser) {
-                const myWorth = Math.floor(calculateNetWorth()).toLocaleString('ru-RU');
-                summary.innerHTML = `Ваш капитал: <b style="color:#34d399">${myWorth} ₽</b> • Ваше место: <b style="color:#fbbf24">${myRank > 0 ? '#' + myRank : 'Вне ТОП-50'}</b>`;
-            }
-        }).catch(err => {
-            list.innerHTML = `<div style="color:#ef4444; text-align:center; padding:15px;">Ошибка загрузки рейтинга. Проверьте права базы данных!</div>`;
-        });
+        }
     }
+
 
     function renderQuests() {
         const list = document.getElementById('quests-list');
@@ -2321,6 +2420,310 @@
         document.getElementById('roulette-modal').classList.remove('show');
     }
 
+    // --- 🏁 СИСТЕМА ДРАГ-РЕЙСИНГА 402М ---
+    let racingSelectedCarIndex = 0;
+    let isRacingNow = false;
+
+    const raceLeagues = [
+        { id: 'l1', name: '🥉 Новичок стритрейсинга', carName: 'Лада Калина 1 Спорт', carId: 'kalina1', accel: 10.7, bet: 10000, reward: 20000, xp: 20 },
+        { id: 'l2', name: '🥈 Клубный драйвер', carName: 'Фольксваген Гольф', carId: 'golf', accel: 8.5, bet: 50000, reward: 100000, xp: 50 },
+        { id: 'l3', name: '🥇 Ночной охотник', carName: 'БМВ М5 Е60', carId: 'm5_e60', accel: 4.7, bet: 150000, reward: 300000, xp: 100 },
+        { id: 'l4', name: '💎 Мажор из Сити', carName: 'Ауди РС6 Авант', carId: 'rs6', accel: 3.6, bet: 400000, reward: 800000, xp: 200 },
+        { id: 'l5', name: '👑 Шейх Дубая', carName: 'Тесла Модел С Plaid', carId: 'tesla_s', accel: 2.1, bet: 1000000, reward: 2000000, xp: 500 }
+    ];
+
+    function getCarEffectiveAccel(car) {
+        if (!car) return 10.7;
+        const found = carsData.find(c => c.id === car.carId || c.name.toLowerCase() === (car.name || '').toLowerCase());
+        let baseAccel = found ? parseFloat(found.specs.accel) : 10.7;
+        if (isNaN(baseAccel)) baseAccel = 10.7;
+        if (car.stage === 1) baseAccel -= 0.6;
+        if (car.stage === 2) baseAccel -= 1.3;
+        return Math.max(1.5, baseAccel);
+    }
+
+    function renderRacingTab() {
+        const card = document.getElementById('racing-selected-car-card');
+        const list = document.getElementById('racing-leagues-list');
+        if (!card || !list) return;
+
+        if (myCars.length === 0) {
+            card.innerHTML = `<div style="text-align:center; padding:15px; color:var(--text-sub);">В вашем гараже нет машин! Купите авто в Автосалоне, чтобы участвовать в гонках.</div>`;
+            list.innerHTML = '';
+            return;
+        }
+
+        if (racingSelectedCarIndex >= myCars.length) racingSelectedCarIndex = 0;
+        const car = myCars[racingSelectedCarIndex];
+        const effAccel = getCarEffectiveAccel(car);
+        const stageBadge = car.stage ? `<span class="stage-badge">STAGE ${car.stage}</span>` : '';
+
+        let carOptions = myCars.map((c, i) => `<option value="${i}" ${i === racingSelectedCarIndex ? 'selected' : ''}>${c.name} (0-100: ${getCarEffectiveAccel(c).toFixed(1)}с)</option>`).join('');
+
+        card.innerHTML = `
+            <div class="race-car-selected-banner">
+                <div class="car-pixel-preview" style="width: 82px; height: 64px;">${getCarSVG(car.carId || 'kalina1', car.customColor, car.tint)}</div>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="color:#fff; font-size:15px;">${car.name}</b>
+                        ${stageBadge}
+                    </div>
+                    <div style="font-size:12px; color:#38bdf8; margin: 3px 0;">⚡ Разгон 0-100: <b>${effAccel.toFixed(1)} с</b></div>
+                    <select class="ctrl-select" style="width:100%; margin-top:4px;" onchange="window.gameApp.selectRacingCar(this.value)">
+                        ${carOptions}
+                    </select>
+                </div>
+            </div>
+        `;
+
+        list.innerHTML = '';
+        raceLeagues.forEach((l, idx) => {
+            const div = document.createElement('div');
+            div.className = 'race-league-card';
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="car-pixel-preview" style="width:60px; height:45px;">${getCarSVG(l.carId)}</div>
+                    <div>
+                        <b style="color:#fff; font-size:13px;">${l.name}</b><br>
+                        <small style="color:var(--text-sub); font-size:11px;">${l.carName} • Разгон: ${l.accel}с</small><br>
+                        <small style="color:#fbbf24; font-weight:800; font-size:11px;">Ставка: ${l.bet.toLocaleString('ru-RU')} ₽ ➔ Приз: +${l.reward.toLocaleString('ru-RU')} ₽</small>
+                    </div>
+                </div>
+                <button class="pay-all-btn" style="white-space:nowrap;" onclick="window.gameApp.startRace(${idx})">В бой 🏁</button>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function selectRacingCar(index) {
+        racingSelectedCarIndex = Number(index) || 0;
+        renderRacingTab();
+    }
+
+    function startRace(leagueIdx) {
+        if (isRacingNow || myCars.length === 0) return;
+        const league = raceLeagues[leagueIdx];
+        if (!league) return;
+
+        if (balance < league.bet) {
+            return alert(`Недостаточно средств для участия в этом заезде! Нужно ${league.bet.toLocaleString('ru-RU')} ₽`);
+        }
+
+        const playerCar = myCars[racingSelectedCarIndex];
+        const playerAccel = getCarEffectiveAccel(playerCar);
+        const oppAccel = league.accel;
+
+        balance -= league.bet;
+        updateBalance();
+        saveProgress();
+        isRacingNow = true;
+
+        document.getElementById('race-modal-title').innerText = `🏁 ${league.name}`;
+        document.getElementById('runner-player').innerHTML = getCarSVG(playerCar.carId || 'kalina1', playerCar.customColor, playerCar.tint);
+        document.getElementById('runner-opponent').innerHTML = getCarSVG(league.carId);
+
+        const runnerP = document.getElementById('runner-player');
+        const runnerO = document.getElementById('runner-opponent');
+        runnerP.style.left = '10px';
+        runnerO.style.left = '10px';
+
+        document.getElementById('tl-red').classList.remove('active');
+        document.getElementById('tl-yellow').classList.remove('active');
+        document.getElementById('tl-green').classList.remove('active');
+        document.getElementById('race-result-box').classList.add('hidden');
+        document.getElementById('race-status-text').innerText = "Прогрев шин...";
+
+        document.getElementById('race-modal').classList.add('show');
+        initAudio();
+
+        // Светофор
+        setTimeout(() => {
+            document.getElementById('tl-red').classList.add('active');
+            playTick(450);
+            document.getElementById('race-status-text').innerText = "Внимание...";
+        }, 700);
+
+        setTimeout(() => {
+            document.getElementById('tl-yellow').classList.add('active');
+            playTick(600);
+            document.getElementById('race-status-text').innerText = "Приготовиться...";
+        }, 1500);
+
+        setTimeout(() => {
+            document.getElementById('tl-red').classList.remove('active');
+            document.getElementById('tl-yellow').classList.remove('active');
+            document.getElementById('tl-green').classList.add('active');
+            playTick(900);
+            document.getElementById('race-status-text').innerText = "СТАРТ! 💨💨";
+
+            // Расчет результатов 402м
+            const playerJitter = (Math.random() * 0.4 - 0.2);
+            const oppJitter = (Math.random() * 0.4 - 0.2);
+            const playerTime = 9.5 + (playerAccel * 0.65) + playerJitter;
+            const oppTime = 9.5 + (oppAccel * 0.65) + oppJitter;
+            const playerWins = playerTime < oppTime;
+
+            const maxTrackLeft = 240; // px
+            let startMs = Date.now();
+            let animDur = 2600;
+
+            let animInt = setInterval(() => {
+                let elapsed = Date.now() - startMs;
+                let p = Math.min(1, elapsed / animDur);
+                let pCurve = Math.pow(p, 1.4);
+
+                let pLead = playerWins ? 1.05 : 0.95;
+                let oLead = playerWins ? 0.95 : 1.05;
+
+                runnerP.style.left = `${10 + Math.min(maxTrackLeft, pCurve * maxTrackLeft * pLead)}px`;
+                runnerO.style.left = `${10 + Math.min(maxTrackLeft, pCurve * maxTrackLeft * oLead)}px`;
+
+                if (p >= 1) {
+                    clearInterval(animInt);
+                    isRacingNow = false;
+
+                    const titleEl = document.getElementById('race-outcome-title');
+                    const rewardEl = document.getElementById('race-reward-text');
+                    document.getElementById('race-status-text').innerText = "ФИНИШ!";
+
+                    if (playerWins) {
+                        balance += league.reward;
+                        addExp('Крутой');
+                        updateBalance();
+                        saveProgress();
+                        playWinFanfare();
+                        fireConfetti();
+                        titleEl.innerText = "🏆 ВЫ ПОБЕДИЛИ!";
+                        titleEl.style.color = "#34d399";
+                        rewardEl.innerText = `Ваше время: ${playerTime.toFixed(2)} с (соперник: ${oppTime.toFixed(2)} с)\nПриз: +${league.reward.toLocaleString('ru-RU')} ₽!`;
+                    } else {
+                        titleEl.innerText = "💨 ВЫ ПРОИГРАЛИ";
+                        titleEl.style.color = "#ef4444";
+                        rewardEl.innerText = `Соперник финишировал за ${oppTime.toFixed(2)} с (вы: ${playerTime.toFixed(2)} с)\nПопробуйте сделать Stage тюнинг вашего авто!`;
+                    }
+                    document.getElementById('race-result-box').classList.remove('hidden');
+                }
+            }, 30);
+
+        }, 2200);
+    }
+
+    function closeRaceModal() {
+        document.getElementById('race-modal').classList.remove('show');
+        renderRacingTab();
+    }
+
+    // --- 🎨 СИСТЕМА ТЮНИНГА АВТОМОБИЛЯ ---
+    let currentTuningIndex = -1;
+    let selectedColor = null;
+    let selectedTint = 'none';
+    let selectedStage = 0;
+
+    function openTuningModal(carIndex) {
+        currentTuningIndex = carIndex;
+        const car = myCars[carIndex];
+        if (!car) return;
+
+        selectedColor = car.customColor || null;
+        selectedTint = car.tint || 'none';
+        selectedStage = car.stage || 0;
+
+        updateTuningUI();
+        document.getElementById('tuning-modal').classList.add('show');
+    }
+
+    function closeTuningModal() {
+        document.getElementById('tuning-modal').classList.remove('show');
+        currentTuningIndex = -1;
+    }
+
+    function updateTuningUI() {
+        const car = myCars[currentTuningIndex];
+        if (!car) return;
+
+        document.getElementById('tuning-car-preview').innerHTML = `
+            <div class="car-pixel-preview" style="width: 120px; height: 90px; cursor: default;">
+                ${getCarSVG(car.carId || 'kalina1', selectedColor, selectedTint)}
+            </div>
+        `;
+
+        document.querySelectorAll('#tint-buttons .stage-btn').forEach(btn => btn.classList.remove('active'));
+        if (selectedTint === 'none') document.getElementById('btn-tint-none').classList.add('active');
+        if (selectedTint === '50%') document.getElementById('btn-tint-50').classList.add('active');
+        if (selectedTint === '5%') document.getElementById('btn-tint-5').classList.add('active');
+
+        document.querySelectorAll('#stage-buttons .stage-btn').forEach(btn => btn.classList.remove('active'));
+        if (selectedStage === 0) document.getElementById('btn-stage-0').classList.add('active');
+        if (selectedStage === 1) document.getElementById('btn-stage-1').classList.add('active');
+        if (selectedStage === 2) document.getElementById('btn-stage-2').classList.add('active');
+
+        let totalCost = 0;
+        if (selectedColor && selectedColor !== car.customColor) totalCost += 20000;
+        if (selectedTint !== (car.tint || 'none')) {
+            if (selectedTint === '50%') totalCost += 15000;
+            if (selectedTint === '5%') totalCost += 35000;
+        }
+        if (selectedStage > (car.stage || 0)) {
+            const stage1Cost = Math.round(car.basePrice * 0.15);
+            const stage2Cost = Math.round(car.basePrice * 0.35);
+            if (selectedStage === 1) totalCost += stage1Cost;
+            if (selectedStage === 2) totalCost += (car.stage === 1 ? (stage2Cost - stage1Cost) : stage2Cost);
+        }
+
+        document.getElementById('tuning-total-price').innerText = `К оплате за тюнинг: ${totalCost.toLocaleString('ru-RU')} ₽`;
+    }
+
+    function selectTuningColor(hex) {
+        selectedColor = hex;
+        updateTuningUI();
+    }
+
+    function selectTuningTint(tint) {
+        selectedTint = tint;
+        updateTuningUI();
+    }
+
+    function selectTuningStage(stage) {
+        selectedStage = stage;
+        updateTuningUI();
+    }
+
+    function applyTuning() {
+        const car = myCars[currentTuningIndex];
+        if (!car) return;
+
+        let totalCost = 0;
+        if (selectedColor && selectedColor !== car.customColor) totalCost += 20000;
+        if (selectedTint !== (car.tint || 'none')) {
+            if (selectedTint === '50%') totalCost += 15000;
+            if (selectedTint === '5%') totalCost += 35000;
+        }
+        if (selectedStage > (car.stage || 0)) {
+            const stage1Cost = Math.round(car.basePrice * 0.15);
+            const stage2Cost = Math.round(car.basePrice * 0.35);
+            if (selectedStage === 1) totalCost += stage1Cost;
+            if (selectedStage === 2) totalCost += (car.stage === 1 ? (stage2Cost - stage1Cost) : stage2Cost);
+        }
+
+        if (totalCost > 0) {
+            if (balance < totalCost) {
+                return alert(`Недостаточно средств для тюнинга! Нужно ${totalCost.toLocaleString('ru-RU')} ₽`);
+            }
+            balance -= totalCost;
+        }
+
+        car.customColor = selectedColor;
+        car.tint = selectedTint;
+        car.stage = selectedStage;
+
+        updateBalance();
+        renderCars();
+        saveProgress();
+        playWinFanfare();
+        closeTuningModal();
+        alert("Тюнинг успешно установлен на ваш автомобиль!");
+    }
+
     function switchTab(tabId, element) {
         if (tabId !== 'generator' && isAutoSpin) stopAutoSpin();
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -2331,6 +2734,7 @@
         if (tabId === 'market') loadMarket();
         if (tabId === 'leaders') loadLeaderboard();
         if (tabId === 'quests') renderQuests();
+        if (tabId === 'racing') renderRacingTab();
     }
 
     window.gameApp = {
@@ -2352,6 +2756,9 @@
         loadLeaderboard,
         openAttachModal, closeAttachModal,
         openCasePreview, closeCasePreview, buyCase, switchTab,
-        closeCarSpecModal
+        closeCarSpecModal,
+        // Новые функции гонок и тюнинга:
+        renderRacingTab, selectRacingCar, startRace, closeRaceModal,
+        openTuningModal, closeTuningModal, selectTuningColor, selectTuningTint, selectTuningStage, applyTuning
     };
 })();
