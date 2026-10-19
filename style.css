@@ -72,19 +72,21 @@ body {
     padding-bottom: 30px;
 }
 
-/* Живая анимированная эмблема без дороги справа */
+/* Живая анимированная эмблема по центру */
 .club-logo-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin: 6px auto 10px auto;
+    margin: 8px auto 12px auto;
     width: 100%;
+    text-align: center;
 }
 
 .club-logo-svg {
-    width: 290px;
-    height: 76px;
+    width: 250px;
+    height: 78px;
     display: block;
+    margin: 0 auto;
 }
 
 @keyframes cityPan {
@@ -869,3 +871,158 @@ body {
 .spec-item.full-width { grid-column: span 2; }
 .spec-label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; }
 .spec-val { font-size: 13px; color: #38bdf8; font-weight: 800; margin-top: 2px; }
+
+/* Стили Драг-рейсинга 402м */
+.race-league-card {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: 0.2s;
+}
+.race-league-card:hover {
+    border-color: rgba(52, 211, 153, 0.4);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+.race-car-selected-banner {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.12));
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.race-track-container {
+    background: #020617;
+    border: 2px solid #1e293b;
+    border-radius: 16px;
+    padding: 16px 12px;
+    margin: 14px 0;
+    position: relative;
+    overflow: hidden;
+}
+.traffic-lights {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    background: #0b0f19;
+    padding: 8px 16px;
+    border-radius: 30px;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid #1e293b;
+}
+.t-light {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #1e293b;
+    transition: 0.2s;
+}
+.t-light.red.active { background: #ef4444; box-shadow: 0 0 16px #ef4444; }
+.t-light.yellow.active { background: #f59e0b; box-shadow: 0 0 16px #f59e0b; }
+.t-light.green.active { background: #10b981; box-shadow: 0 0 16px #10b981; }
+
+.race-lane {
+    position: relative;
+    height: 80px;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+}
+.race-lane.bottom-lane { border-bottom: none; }
+.race-car-runner {
+    position: absolute;
+    left: 10px;
+    width: 90px;
+    height: 65px;
+    transition: left 0.05s linear;
+    z-index: 5;
+}
+.finish-flag {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    bottom: 0;
+    width: 14px;
+    background: repeating-linear-gradient(
+        0deg,
+        #fff,
+        #fff 8px,
+        #000 8px,
+        #000 16px
+    );
+    border-left: 2px solid #34d399;
+}
+
+/* Стили Тюнинга */
+.tuning-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    margin: 12px 0 6px 0;
+    text-align: left;
+}
+.color-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.15s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+.swatch.active {
+    border-color: #ffffff;
+    transform: scale(1.15);
+    box-shadow: 0 0 12px rgba(255,255,255,0.6);
+}
+.stage-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.stage-btn {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #fff;
+    padding: 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    transition: 0.2s;
+}
+.stage-btn.active {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: #10b981;
+    color: #34d399;
+}
+.stage-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f59e0b;
+    color: #000;
+    font-weight: 900;
+    margin-left: 4px;
+}
+
