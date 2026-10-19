@@ -203,52 +203,12 @@ body {
     transition: 0.15s;
     flex-shrink: 0;
 }
-.side-menu-burger-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.2); }
-
-/* Компактная плашка текущего раздела с кнопкой бокового меню */
-.nav-bar-trigger {
-    background: var(--bg-card);
-    border: 1px solid var(--bg-card-border);
-    backdrop-filter: blur(14px);
-    border-radius: 14px;
-    padding: 10px 14px;
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
-}
-.nav-bar-trigger:hover {
+.side-menu-burger-btn:hover {
+    background: rgba(52, 211, 153, 0.15);
     border-color: rgba(52, 211, 153, 0.4);
-    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.15);
-}
-.nav-bar-trigger:active {
-    transform: scale(0.985);
-}
-.nav-bar-current {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 0.5px;
-}
-.nav-bar-menu-pill {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(16, 185, 129, 0.1));
-    border: 1px solid rgba(52, 211, 153, 0.35);
     color: #34d399;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.5px;
 }
+.side-menu-burger-btn:active { transform: scale(0.92); background: rgba(52, 211, 153, 0.2); }
 
 /* Боковое меню (Шторка / Drawer) для ПК и Телефонов */
 .side-menu-overlay {
@@ -358,25 +318,9 @@ body {
     text-align: center;
     flex-shrink: 0;
 }
-.side-item-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    min-width: 0;
-}
 .side-item-text {
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 800;
-}
-.side-item-sub {
-    font-size: 10.5px;
-    font-weight: 500;
-    color: var(--text-sub);
-    opacity: 0.8;
-}
-.side-item.active .side-item-sub {
-    color: #a7f3d0;
-    opacity: 0.95;
 }
 .side-menu-footer {
     padding: 14px 18px;
