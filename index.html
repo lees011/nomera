@@ -21,9 +21,9 @@
 
     <div class="app-container">
 
-        <!-- Лаконичная анимированная эмблема без дороги справа -->
+        <!-- Лаконичная анимированная эмблема по центру -->
         <div class="club-logo-wrapper">
-            <svg class="club-logo-svg" viewBox="0 0 320 85" xmlns="http://www.w3.org/2000/svg">
+            <svg class="club-logo-svg" viewBox="10 4 212 86" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stop-color="#34d399"/>
@@ -181,11 +181,12 @@
             </div>
         </div>
 
-        <!-- Навигация (8 разделенных вкладок) -->
+        <!-- Навигация (9 вкладок с гонками) -->
         <div class="nav-tabs">
             <div class="nav-tab active" id="tab-nav-plates" onclick="window.gameApp.switchTab('generator', this)">🎰 <span id="txt-tab-plates">Номера</span></div>
             <div class="nav-tab" id="tab-nav-inv" onclick="window.gameApp.switchTab('inventory', this)">🎒 <span id="txt-tab-inv">Инвентарь</span></div>
             <div class="nav-tab" id="tab-nav-mygarage" onclick="window.gameApp.switchTab('mygarage', this)">🏎️ <span id="txt-tab-mygarage">Мой гараж</span></div>
+            <div class="nav-tab" id="tab-nav-racing" onclick="window.gameApp.switchTab('racing', this)">🏁 <span id="txt-tab-racing">Гонки</span></div>
             <div class="nav-tab" id="tab-nav-dealership" onclick="window.gameApp.switchTab('dealership', this)">🏪 <span id="txt-tab-dealership">Автосалон</span></div>
             <div class="nav-tab" id="tab-nav-cases" onclick="window.gameApp.switchTab('cases', this)">📦 <span id="txt-tab-cases">Кейсы</span></div>
             <div class="nav-tab" id="tab-nav-market" onclick="window.gameApp.switchTab('market', this)">🌐 <span id="txt-tab-market">Рынок</span></div>
@@ -302,7 +303,19 @@
             </div>
         </div>
 
-        <!-- 4. Вкладка Автосалон (Отдельная вкладка) -->
+        <!-- 4. Вкладка Драг-рейсинг 402м -->
+        <div id="racing" class="tab-content hidden">
+            <div class="section-card">
+                <div class="section-header-row">
+                    <h3 id="lbl-racing-title">🏁 Драг-рейсинг (Заезды 402м)</h3>
+                </div>
+                <div id="racing-selected-car-card"></div>
+                <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">Выберите лигу соперников и выходите на старт:</div>
+                <div id="racing-leagues-list"></div>
+            </div>
+        </div>
+
+        <!-- 5. Вкладка Автосалон (Отдельная вкладка) -->
         <div id="dealership" class="tab-content hidden">
             <div class="section-card">
                 <div class="section-header-row">
@@ -531,6 +544,74 @@
                     <button class="btn btn-green" id="btn-roulette-save">В инвентарь</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Заезда Драг-Рейсинга 402м -->
+    <div id="race-modal" class="modal-overlay">
+        <div class="modal-box" style="text-align: center; max-width: 440px;">
+            <h3 style="margin-top:0; color:#fff;" id="race-modal-title">🏁 Заезд 402 метра</h3>
+            
+            <div class="traffic-lights">
+                <div class="t-light red" id="tl-red"></div>
+                <div class="t-light yellow" id="tl-yellow"></div>
+                <div class="t-light green" id="tl-green"></div>
+            </div>
+
+            <div class="race-track-container" id="race-track">
+                <div class="finish-flag"></div>
+                <div class="race-lane" id="lane-player">
+                    <div class="race-car-runner" id="runner-player"></div>
+                </div>
+                <div class="race-lane bottom-lane" id="lane-opponent">
+                    <div class="race-car-runner" id="runner-opponent"></div>
+                </div>
+            </div>
+
+            <div id="race-status-text" style="font-size: 15px; font-weight: 800; color: #38bdf8; min-height: 24px; margin-bottom: 8px;">Готовность...</div>
+            <div id="race-result-box" class="hidden">
+                <div id="race-outcome-title" style="font-size: 22px; font-weight: 900; margin-bottom: 6px;"></div>
+                <div id="race-reward-text" style="font-size: 16px; font-weight: 800; color: #34d399; margin-bottom: 12px;"></div>
+                <button class="btn btn-green" onclick="window.gameApp.closeRaceModal()">Завершить заезд</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Тюнинга автомобиля -->
+    <div id="tuning-modal" class="modal-overlay" onclick="if(event.target===this) window.gameApp.closeTuningModal()">
+        <div class="modal-box">
+            <h3 style="margin-top:0; color: #fff;" id="tuning-modal-title">🎨 Тюнинг-ателье</h3>
+            <div id="tuning-car-preview" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
+
+            <div class="tuning-section-title">Цвет кузова (20 000 ₽)</div>
+            <div class="color-swatches" id="color-swatches">
+                <div class="swatch" style="background: #10b981;" onclick="window.gameApp.selectTuningColor('#10b981')"></div>
+                <div class="swatch" style="background: #0284c7;" onclick="window.gameApp.selectTuningColor('#0284c7')"></div>
+                <div class="swatch" style="background: #ef4444;" onclick="window.gameApp.selectTuningColor('#ef4444')"></div>
+                <div class="swatch" style="background: #f59e0b;" onclick="window.gameApp.selectTuningColor('#f59e0b')"></div>
+                <div class="swatch" style="background: #8b5cf6;" onclick="window.gameApp.selectTuningColor('#8b5cf6')"></div>
+                <div class="swatch" style="background: #f8fafc;" onclick="window.gameApp.selectTuningColor('#f8fafc')"></div>
+                <div class="swatch" style="background: #1e293b;" onclick="window.gameApp.selectTuningColor('#1e293b')"></div>
+                <div class="swatch" style="background: #020617;" onclick="window.gameApp.selectTuningColor('#020617')"></div>
+            </div>
+
+            <div class="tuning-section-title">Тонировка стекол</div>
+            <div class="stage-buttons" id="tint-buttons">
+                <button class="stage-btn" id="btn-tint-none" onclick="window.gameApp.selectTuningTint('none')">Сток<br>0 ₽</button>
+                <button class="stage-btn" id="btn-tint-50" onclick="window.gameApp.selectTuningTint('50%')">50% Легкая<br>15 000 ₽</button>
+                <button class="stage-btn" id="btn-tint-5" onclick="window.gameApp.selectTuningTint('5%')">5% Бункер<br>35 000 ₽</button>
+            </div>
+
+            <div class="tuning-section-title">Чип-тюнинг двигателя (Stage)</div>
+            <div class="stage-buttons" id="stage-buttons">
+                <button class="stage-btn" id="btn-stage-0" onclick="window.gameApp.selectTuningStage(0)">Сток<br>Завод</button>
+                <button class="stage-btn" id="btn-stage-1" onclick="window.gameApp.selectTuningStage(1)">Stage 1<br>+20% л.с.</button>
+                <button class="stage-btn" id="btn-stage-2" onclick="window.gameApp.selectTuningStage(2)">Stage 2<br>+45% л.с.</button>
+            </div>
+
+            <div id="tuning-total-price" style="font-size: 14px; font-weight: 800; color: #fbbf24; margin: 12px 0;">К оплате: 0 ₽</div>
+            <button class="btn btn-green" onclick="window.gameApp.applyTuning()">Применить тюнинг</button>
+            <button class="btn btn-close" onclick="window.gameApp.closeTuningModal()">Отмена</button>
         </div>
     </div>
 
